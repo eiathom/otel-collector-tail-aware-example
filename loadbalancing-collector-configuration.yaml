@@ -1,0 +1,55 @@
+receivers:
+  otlp:
+    protocols:
+      # just interested in HTTP JSON payload for now
+      http:
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
+  hostmetrics:
+    scrapers:
+      load:
+      memory:
+
+processors:
+  # see: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
+  batch:
+
+exporters:
+  # example telemetry back-end
+  # we are going to export metric signals directly to the back-end
+  # see: https://docs.newrelic.com/docs/more-integrations/open-source-telemetry-integrations/opentelemetry/get-started/opentelemetry-set-up-your-app/#review-settings
+  otlp/newrelic:
+    endpoint: ${OTLP_NEW_RELIC_EXPORTER_ENDPOINT}
+    headers:
+      api-key: ${NEW_RELIC_API_KEY}
+
+  # trace and log signals will be exported downstream to the tail-aware Collector (and then on to the telemetry back-end)
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
+  otlp/loadbalancing:
+    # export spans based on their service name, all spans for each service are sent to consistent collector instances
+    routing_key: "service"
+    protocol:
+      # takes all configuration of 'regular' exporter (just don't set the endpoint here)
+      otlp:
+        timeout: 1s
+    resolver:
+      # choosing to resolve hostnames by querying DNS
+      dns:
+        # hostname to query in order to obtain the list of IP addresses
+        hostname: "tailawarecollector.otelcollector.local"
+        # port to be used for exporting the traces to the IP addresses resolved (we're interested in hitting downstream collector 4318 port [HTTP, JSON])
+        port: 4318
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [otlp/loadbalancing]
+    metrics:
+      receivers: [otlp, hostmetrics]
+      processors: [batch]
+      exporters: [otlp/newrelic]
+    logs:
+      receivers: [otlp]
+      processors: []
+      exporters: [otlp/loadbalancing]

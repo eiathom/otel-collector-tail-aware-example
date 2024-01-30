@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Load Balanced OTEL Collector with Tail-Aware Collector
+
+Parameters:
+  VpcId:
+    Type: String
+    Description: The ID of the VPC for the resources to be deployed into
+  OtelCollectorNamespaceName:
+    Type: String
+    Description: The name of the namespace for service discovery (discovery of Collectors hostnames)
+    Default: otelcollector
+  LoadBalancingCollectorMaxCapacity:
+    Type: Number
+    Description: The maximum number of tasks the LoadBalancing Collector should scale out to
+    Default: 5
+  LoadBalancingCollectorMinCapacity:
+    Type: Number
+    Description: The minimum number of tasks the LoadBalancing Collector should scale in to
+    Default: 1
+  LoadBalancingCollectorScalingTargetValue:
+    Type: Number
+    Description: The average memory utilisation percentage used to begin scaling the LoadBalancing Collector
+    Default: 70
+  TailAwareCollectorDesiredCount:
+    Type: Number
+    Description: The number of tasks the TailAware - stateful - Collector should have deployed
+    Default: 3
+
+Resources:
+  OtelCollectorCluster:
+    Type: AWS::ECS::Cluster
+
+  OtelCollectorCloudMapNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: !Sub "${OtelCollectorNamespaceName}.local"
+      Vpc: !Ref VpcId
+
+  # LoadBalancingCollector: Scalable Service
+  LoadBalancingCollectorDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: loadbalancingcollector
+      NamespaceId: !Ref OtelCollectorCloudMapNamespace
+
+  LoadBalancingCollectorTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    # Rest of task definition properties TODO
+
+  LoadBalancingCollector:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref OtelCollectorCluster
+      TaskDefinition: !Ref LoadBalancingCollectorTaskDefinition
+      ServiceRegistries:
+        - RegistryArn: !GetAtt LoadBalancingCollectorDiscovery.Arn
+      # Rest of service properties TODO
+
+  LoadBalancingCollectorScalingTarget:
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties:
+      MaxCapacity: !Ref LoadBalancingCollectorMaxCapacity
+      MinCapacity: !Ref LoadBalancingCollectorMinCapacity
+      ResourceId: !Sub "service/${OtelCollectorCluster}/${LoadBalancingCollector}"
+      ScalableDimension: "ecs:service:DesiredCount"
+      ServiceNamespace: ecs
+
+  # scaling the load balancing collector service task based on average memory utilisation
+  LoadBalancingCollectorScalingPolicy:
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties:
+      PolicyName: LoadBalancingCollectorAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref LoadBalancingCollectorScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: "ECSServiceAverageMemoryUtilization"
+        TargetValue: !Ref LoadBalancingCollectorScalingTargetValue
+        # see: https://docs.aws.amazon.com/autoscaling/application/userguide/target-tracking-scaling-policy-overview.html#target-tracking-cooldown
+        # in seconds, defaulting to both being 5 minutes of cooldown (this should be tuned after many load generation verification runs)
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 300
+
+  # TailAwareCollector: Stateful Service
+  TailAwareCollectorDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: tailawarecollector
+      NamespaceId: !Ref OtelCollectorCloudMapNamespace
+
+  TailAwareCollectorTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    # Rest of task definition properties TODO
+
+  TailAwareCollector:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref OtelCollectorCluster
+      TaskDefinition: !Ref TailAwareCollectorTaskDefinition
+      DesiredCount: !Ref TailAwareCollectorDesiredCount
+      ServiceRegistries:
+        - RegistryArn: !GetAtt TailAwareCollectorDiscovery.Arn
+      # Rest of service properties TODO

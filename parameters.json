@@ -1,0 +1,10 @@
+{
+  "Parameters": {
+    "VpcId": "find-me",
+    "OtelCollectorNamespaceName": "otelcollector",
+    "LoadBalancingCollectorMaxCapacity": 5,
+    "LoadBalancingCollectorMinCapacity": 1,
+    "LoadBalancingCollectorScalingTargetValue": 70,
+    "TailAwareCollectorDesiredCount": 3
+  }
+}

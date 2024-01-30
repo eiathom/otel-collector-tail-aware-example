@@ -1,0 +1,65 @@
+receivers:
+  otlp:
+    protocols:
+      # just interested in HTTP JSON payload for now
+      http:
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
+  hostmetrics:
+    scrapers:
+      load:
+      memory:
+
+processors:
+  # see: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
+  batch:
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 1000
+    expected_new_traces_per_sec: 100
+    # some example simple policies
+    policies: [
+      # sample traces where the duration of the trace is greater than 5 seconds
+      {
+        name: test-policy-1,
+        type: latency,
+        latency: {threshold_ms: 5000}
+      },
+      # sample traces where the value of 'some.key' is between 50 and 100 (inclusive)
+      {
+        name: test-policy-2,
+        type: numeric_attribute,
+        numeric_attribute: {key: some.key, min_value: 50, max_value: 100}
+      },
+      # sample 10% of traces
+      {
+        name: test-policy-3,
+        type: probabilistic,
+        probabilistic: {sampling_percentage: 10}
+      },
+      # sample traces with error
+      {
+        name: test-policy-4,
+        type: status_code,
+        status_code: {status_codes: [ERROR]}
+      },
+    ]
+
+exporters:
+  # example telemetry back-end
+  # see: https://docs.newrelic.com/docs/more-integrations/open-source-telemetry-integrations/opentelemetry/get-started/opentelemetry-set-up-your-app/#review-settings
+  otlp/newrelic:
+    endpoint: ${OTLP_NEW_RELIC_EXPORTER_ENDPOINT}
+    headers:
+      api-key: ${NEW_RELIC_API_KEY}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [tail_sampling, batch]
+      exporters: [otlp/newrelic]
+    logs:
+      receivers: [otlp]
+      processors: [tail_sampling, batch]
+      exporters: [otlp/newrelic]
