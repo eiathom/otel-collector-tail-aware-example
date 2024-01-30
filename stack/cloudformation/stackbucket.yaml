@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Secure S3 Bucket accessible only by members of a specific account
+
+Resources:
+  StackBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::AccountId}-stack-bucket"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+      VersioningConfiguration:
+        # we want to generate and manage versioning ourselves
+        Status: Suspended
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StackBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowSpecificUserAccessOnly"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "${AWS::AccountId}"
+            Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+              - "s3:DeleteObject"
+              - "s3:ListBucket"
+            Resource:
+              - !GetAtt StackBucket.Arn
+              - !Sub "${StackBucket.Arn}/*"
+
+Outputs:
+  BucketName:
+    Description: Name of the stack bucket
+    Value: !Ref StackBucket

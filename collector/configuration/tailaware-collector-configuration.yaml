@@ -1,0 +1,69 @@
+receivers:
+  otlp:
+    protocols:
+      # just interested in HTTP JSON payload for now
+      http:
+      grpc:
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
+  hostmetrics:
+    scrapers:
+      load:
+      memory:
+
+processors:
+  # see: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
+  batch:
+    send_batch_size: 2000
+    timeout: 10s
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+  tail_sampling:
+    decision_wait: 10s
+    expected_new_traces_per_sec: 1000
+    # some example simple policies
+    policies:
+      - name: sampling-policy
+        type: and
+        and:
+          and_sub_policy:
+            - name: status-code-policy
+              type: status_code
+              status_code:
+                status_codes:
+                  - "ERROR"
+                  - "OK"
+                  - "UNSET"
+            - name: probabilistic-policy
+              type: probabilistic
+              probabilistic:
+                sampling_percentage: 100
+            - name: service-name-prefix-policy
+              type: string_attribute
+              string_attribute:
+                key: service.name
+                values:
+                  - my.*
+                enabled_regex_matching: true
+
+exporters:
+  debug:
+    verbosity: detailed
+  # example telemetry back-end
+  # see: https://docs.newrelic.com/docs/more-integrations/open-source-telemetry-integrations/opentelemetry/get-started/opentelemetry-set-up-your-app/#review-settings
+  otlp/newrelic:
+    endpoint: otlp.eu01.nr-data.net:443
+    headers:
+      api-key: ${TELEMETRY_BACKEND_API_KEY}
+
+service:
+  telemetry:
+    logs:
+      level: "debug"
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [tail_sampling, batch]
+      exporters: [otlp/newrelic, debug]
+    metrics:
+      receivers: [otlp, hostmetrics]
+      processors: [batch]
+      exporters: [otlp/newrelic, debug]

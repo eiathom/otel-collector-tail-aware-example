@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Public-facing ELB listening on port 80 for path "/v1/*"
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: The VPC ID where the load balancer will be deployed
+    Default: vpc-2465842045826
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: The Subnets (multiple for HA) configured to allow internet access
+    Default: subnet-27465297465,subnet-265924692
+  HttpTrafficPort:
+    Type: Number
+    Description: The port for HTTP traffic
+    Default: 4318
+  HttpTargetPort:
+    Type: Number
+    Description: The port for HTTP traffic to be forwarded to
+    Default: 4318
+
+Resources:
+  # Security groups act as a virtual firewall for your ELB to control inbound and outbound traffic
+  # In this case, the security group allows inbound traffic on TCP port 80 from anywhere (0.0.0.0/0) (which is necessary for a public-facing load balancer)
+  PublicLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: public-load-balancer-security-group
+      GroupDescription: Allow internet access to ELB on port 80
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref HttpTrafficPort
+          ToPort: !Ref HttpTrafficPort
+          CidrIp: 0.0.0.0/0
+          Description: Allow HTTP traffic from anywhere
+      Tags:
+        - Key: Name
+          Value: public-load-balancer-security-group
+
+  # The Scheme is set to internet-facing to make it publicly accessible
+  # It's associated with subnets (that should be in different Availability Zones for high availability)
+  # These subnets must be connected to the internet (typically through an Internet Gateway in the VPC)
+  PublicLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: public-load-balancer
+      Subnets: !Ref PublicSubnetIds
+      SecurityGroups:
+        - Ref: PublicLoadBalancerSecurityGroup
+      Scheme: internet-facing
+      IpAddressType: ipv4
+      Type: application
+      Tags:
+        - Key: Name
+          Value: public-load-balancer
+
+  # A listener checks for connection requests to the load balancer based on the protocol and port
+  # Here, it listens on port 80 for HTTP traffic
+  # The default action is configured to return a 404 (Not Found) fixed response, effectively serving as a fallback if no rules match the incoming request
+  PublicLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref PublicLoadBalancer
+      Port: !Ref HttpTrafficPort
+      Protocol: HTTP
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            StatusCode: 404
+            ContentType: "text/plain"
+            MessageBody: "Not Found"
+
+  # Listener Rules define how the incoming traffic is routed
+  # In this case, there's a rule to forward requests with a path starting with "/v1/" to a specific target group
+  # This is where you define the criteria for forwarding requests to specific targets (e.g., EC2 instances, ECS services)
+  ListenerRuleForV1Path:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Priority: 1
+      ListenerArn: !Ref PublicLoadBalancerListener
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - "/v1/*"
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref HttpTargetGroup
+
+  # Target groups are used to route requests to one or more registered targets
+  # This template defines a target group with targets (e.g., EC2 instances, ECS services) that listen on port 4318 using HTTP protocol (within the specified VPC)
+  HttpTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: http-target-group
+      Port: !Ref HttpTargetPort
+      Protocol: HTTP
+      ProtocolVersion: HTTP1
+      TargetType: ip
+      UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      HealthCheckIntervalSeconds: 30
+      # note that both of these (path, port) need to be exposed on the target Task
+      HealthCheckPath: /v1/traces
+      HealthCheckPort: 4318
+      HealthCheckProtocol: HTTP
+      HealthCheckEnabled: true
+      Matcher:
+        HttpCode: 200-499
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: http-target-group
+
+Outputs:
+  LoadBalancerDNSName:
+    Description: DNS name of the public load balancer
+    Value: !GetAtt PublicLoadBalancer.DNSName
+  PublicLoadBalancerSecurityGroupId:
+    Description: SecurityGroups Id associated to the public load balancer
+    Value: !GetAtt PublicLoadBalancerSecurityGroup.GroupId
+  HttpTargetGroupArn:
+    Description: The ARN of the HTTP target group
+    Value: !GetAtt HttpTargetGroup.TargetGroupArn

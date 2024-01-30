@@ -1,0 +1,73 @@
+receivers:
+  otlp:
+    protocols:
+      # just interested in HTTP JSON payload for now
+      http:
+      grpc:
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
+  hostmetrics:
+    scrapers:
+      load:
+      memory:
+
+processors:
+  # see: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
+  batch:
+    send_batch_size: 2000
+    timeout: 10s
+
+exporters:
+  debug:
+    verbosity: detailed
+  # example telemetry back-end
+  # we are going to export metric signals directly to the back-end
+  # see: https://docs.newrelic.com/docs/more-integrations/open-source-telemetry-integrations/opentelemetry/get-started/opentelemetry-set-up-your-app/#review-settings
+  otlp/newrelic:
+    endpoint: otlp.eu01.nr-data.net:443
+    headers:
+      api-key: ${TELEMETRY_BACKEND_API_KEY}
+
+  # trace and log signals will be exported downstream to the tail-aware Collector (and then on to the telemetry back-end)
+  # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
+  loadbalancing:
+    # export spans based on their service name, all spans for each service are sent to consistent collector instances
+    routing_key: service
+    protocol:
+      # takes all configuration of 'regular' exporter (just don't set the endpoint here)
+      otlp:
+        compression: gzip
+        tls:
+          insecure: true
+    resolver:
+      # choosing to resolve hostnames by querying DNS
+      dns:
+        # hostname to query in order to obtain the list of IP addresses
+        # TODO: move each part of this naming to variables
+        hostname: tailawarecollector.otelcollector.local
+        # port to be used for exporting the traces to the IP addresses resolved ([HTTP, gRPC])
+        port: 4317
+        interval: 15s
+
+extensions:
+  health_check:
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [loadbalancing, debug]
+    metrics/lb:
+      receivers: [otlp]
+      exporters: [loadbalancing, debug]
+    metrics/otlp:
+      receivers: [hostmetrics]
+      processors: [batch]
+      exporters: [otlp/newrelic, debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/newrelic, debug]

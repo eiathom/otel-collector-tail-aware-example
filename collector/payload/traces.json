@@ -1,0 +1,54 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "my.service"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "my.library",
+            "version": "1.0.0",
+            "attributes": [
+              {
+                "key": "my.scope.attribute",
+                "value": {
+                  "stringValue": "some scope attribute"
+                }
+              }
+            ]
+          },
+          "spans": [
+            {
+              "traceId": "5B8EFFF798038103D269B633813FC60C",
+              "spanId": "EEE19B7EC3C1B174",
+              "parentSpanId": "EEE19B7EC3C1B173",
+              "name": "I'm a server span",
+              "startTimeUnixNano": "1544712660000000000",
+              "endTimeUnixNano": "1554712661000000000",
+              "kind": 2,
+              "status": {
+                "status_code": "STATUS_CODE_ERROR"
+              },
+              "attributes": [
+                {
+                  "key": "some.key",
+                  "value": {
+                    "intValue": 75
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

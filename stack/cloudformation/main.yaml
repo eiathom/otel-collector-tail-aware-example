@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: OTEL Collector infrastructure
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: S3 bucket where stacks are stored
+    Default: stack-bucket
+  HttpTrafficPort:
+    Type: Number
+    Description: The port for HTTP traffic
+    Default: 4318
+  HttpTargetPort:
+    Type: Number
+    Description: The port for HTTP traffic to be forwarded to
+    Default: 4318
+  # TelemetryBackendApiKeySsmValue:
+  #   Type: String
+  #   Description: Value of the telemetry API key
+  #   Default: Default
+  #   NoEcho: true
+  # LoadBalancingCollectorConfigurationSsmValue:
+  #   Type: String
+  #   Description: Value of the LoadBalancing Collector configuration
+  #   Default: Default
+  #   NoEcho: true
+  # TailAwareCollectorConfigurationSsmValue:
+  #   Type: String
+  #   Description: Value of the TailAware Collector configuration
+  #   Default: Default
+  #   NoEcho: true
+  LoadBalancingCollectorMaxCapacity:
+    Type: Number
+    Description: The maximum number of tasks the LoadBalancing Collector should scale out to
+    Default: 3
+  LoadBalancingCollectorMinCapacity:
+    Type: Number
+    Description: The minimum number of tasks the LoadBalancing Collector should scale in to
+    Default: 1
+  LoadBalancingCollectorScalingTargetPercentage:
+    Type: Number
+    Description: The average memory utilisation percentage used to begin scaling the LoadBalancing Collector
+    Default: 70
+  LoadBalancingCollectorDesiredCount:
+    Type: Number
+    Description: The desired number of initial tasks
+    Default: 1
+  LoadBalancingCollectorCpu:
+    Type: Number
+    Default: 256
+  LoadBalancingCollectorMemory:
+    Type: Number
+    Default: 512
+  TailAwareCollectorDesiredCount:
+    Type: Number
+    Description: The desired number of initial tasks
+    Default: 3
+  TailAwareCollectorCpu:
+    Type: Number
+    Default: 256
+  TailAwareCollectorMemory:
+    Type: Number
+    Default: 512
+
+Resources:
+  SecurePrivateCloud:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/secureprivatecloud.yaml"
+
+  PublicLoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/publicloadbalancer.yaml"
+      Parameters:
+        VpcId: !GetAtt SecurePrivateCloud.Outputs.VpcId
+        PublicSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PublicSubnetIds
+        HttpTrafficPort: !Ref HttpTrafficPort
+        HttpTargetPort: !Ref HttpTargetPort
+
+  # SecureSystemParameters:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/securesystemparameters.yaml"
+  #     Parameters:
+  #       TelemetryBackendApiKeySsmValue: !Ref TelemetryBackendApiKeySsmValue
+  #       LoadBalancingCollectorConfigurationSsmValue: !Ref LoadBalancingCollectorConfigurationSsmValue
+  #       TailAwareCollectorConfigurationSsmValue: !Ref TailAwareCollectorConfigurationSsmValue
+
+  PrivateService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/privateservice.yaml"
+      Parameters:
+        VpcId: !GetAtt SecurePrivateCloud.Outputs.VpcId
+        PrivateSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PrivateSubnetIds
+        PublicLoadBalancerSecurityGroupId: !GetAtt PublicLoadBalancer.Outputs.PublicLoadBalancerSecurityGroupId
+        HttpTrafficPort: !Ref HttpTrafficPort
+        HttpTargetPort: !Ref HttpTargetPort
+        HttpTargetGroupArn: !GetAtt PublicLoadBalancer.Outputs.HttpTargetGroupArn
+        # TelemetryBackendApiKeySsmKeyName: !GetAtt SecureSystemParameters.Outputs.TelemetryBackendApiKeySsmResourceName
+        # LoadBalancingCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfSsmResourceName
+        # LoadBalancingCollectorConfigurationYaml: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfigurationSsmResourceName
+        # TailAwareCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.TailAwareCollectorConfSsmResourceName
+        # TailAwareCollectorConfigurationYaml: !GetAtt SecureSystemParameters.Outputs.TailAwareCollectorConfigurationSsmResourceName
+        LoadBalancingCollectorMaxCapacity: !Ref LoadBalancingCollectorMaxCapacity
+        LoadBalancingCollectorMinCapacity: !Ref LoadBalancingCollectorMinCapacity
+        LoadBalancingCollectorScalingTargetPercentage: !Ref LoadBalancingCollectorScalingTargetPercentage
+        LoadBalancingCollectorDesiredCount: !Ref LoadBalancingCollectorDesiredCount
+        LoadBalancingCollectorCpu: !Ref LoadBalancingCollectorCpu
+        LoadBalancingCollectorMemory: !Ref LoadBalancingCollectorMemory
+        TailAwareCollectorDesiredCount: !Ref TailAwareCollectorDesiredCount
+        TailAwareCollectorCpu: !Ref TailAwareCollectorCpu
+        TailAwareCollectorMemory: !Ref TailAwareCollectorMemory
