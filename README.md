@@ -17,20 +17,45 @@ chain: close to the application / instrumentation.
 # install pyenv
 curl https://pyenv.run | bash
 
+# in this repository
 # set the local python version in use
 pyenv local $(head -1 .python-version)
 
 # create a virtual environment
-python -m venv venv 
+python -m venv venv
 
 # activate the environment
 source venv/bin/activate
 
+# upgrade pip
+python -m pip install --upgrade pip
+
 # install dependencies
-pip install -r requirements/development.txt
+python -m pip install -r requirements/development.txt
+
+# install aws cli
+python -m pip install awscli
+
+# configure aws cli
+# (aws account access id and secret access id required)
+aws configure
+
+# user aws permission polices required
+* EC2
+* ECS
+* CloudFormation
+* CloudMap
 
 # run checks on the template for proper syntax
 cfn-lint --template template.yaml --region us-east-1 --ignore-checks W
+
+# create the stack
+aws cloudformation create-stack --stack-name LoadBalancedTailAwareCollector \
+  --template-body file://template.yaml \
+  --parameters file://parameters.json \
+  --region eu-west-1 \
+  --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+  --on-failure DELETE
 
 # close the environment when done
 deactivate

@@ -1,10 +1,26 @@
-{
-  "Parameters": {
-    "VpcId": "find-me",
-    "OtelCollectorNamespaceName": "otelcollector",
-    "LoadBalancingCollectorMaxCapacity": 5,
-    "LoadBalancingCollectorMinCapacity": 1,
-    "LoadBalancingCollectorScalingTargetValue": 70,
-    "TailAwareCollectorDesiredCount": 3
-  }
-}
+[
+    {
+        "ParameterKey": "VpcId",
+        "ParameterValue": "find-me"
+    },
+    {
+        "ParameterKey": "OtelCollectorNamespaceName",
+        "ParameterValue": "otelcollector"
+    },
+    {
+        "ParameterKey": "LoadBalancingCollectorMaxCapacity",
+        "ParameterValue": "5"
+    },
+    {
+        "ParameterKey": "LoadBalancingCollectorMinCapacity",
+        "ParameterValue": "1"
+    },
+    {
+        "ParameterKey": "LoadBalancingCollectorScalingTargetPercentage",
+        "ParameterValue": "70"
+    },
+    {
+        "ParameterKey": "TailAwareCollectorDesiredCount",
+        "ParameterValue": "3"
+    }
+]
