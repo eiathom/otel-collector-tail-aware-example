@@ -57,6 +57,15 @@ aws cloudformation create-stack --stack-name LoadBalancedTailAwareCollector \
   --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
   --on-failure DELETE
 
+# check on stack progress
+aws cloudformation describe-stack-events \
+  --stack-name LoadBalancedTailAwareCollector \
+  --output json
+
+# delete the stack
+aws cloudformation delete-stack \
+  --stack-name LoadBalancedTailAwareCollector
+
 # close the environment when done
 deactivate
 
