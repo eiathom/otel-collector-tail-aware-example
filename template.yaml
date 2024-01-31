@@ -18,7 +18,7 @@ Parameters:
     Type: Number
     Description: The minimum number of tasks the LoadBalancing Collector should scale in to
     Default: 1
-  LoadBalancingCollectorScalingTargetValue:
+  LoadBalancingCollectorScalingTargetPercentage:
     Type: Number
     Description: The average memory utilisation percentage used to begin scaling the LoadBalancing Collector
     Default: 70
@@ -76,7 +76,7 @@ Resources:
       TargetTrackingScalingPolicyConfiguration:
         PredefinedMetricSpecification:
           PredefinedMetricType: "ECSServiceAverageMemoryUtilization"
-        TargetValue: !Ref LoadBalancingCollectorScalingTargetValue
+        TargetValue: !Ref LoadBalancingCollectorScalingTargetPercentage
         # see: https://docs.aws.amazon.com/autoscaling/application/userguide/target-tracking-scaling-policy-overview.html#target-tracking-cooldown
         # in seconds, defaulting to both being 5 minutes of cooldown (this should be tuned after many load generation verification runs)
         ScaleInCooldown: 300
