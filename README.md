@@ -33,6 +33,9 @@ python -m pip install --upgrade pip
 # install dependencies
 python -m pip install -r requirements/development.txt
 
+# install cfn-lint
+python -m pip install cfn-lint
+
 # install aws cli
 python -m pip install awscli
 
@@ -45,26 +48,21 @@ aws configure
 * ECS
 * CloudFormation
 * CloudMap
+* S3
+* IAM (Read-Only)
 
 # run checks on the template for proper syntax
-cfn-lint --template template.yaml --region us-east-1 --ignore-checks W
+cfn-lint --template template.yaml --region eu-west-1 --ignore-checks W
 
-# create the stack
-aws cloudformation create-stack --stack-name LoadBalancedTailAwareCollector \
-  --template-body file://template.yaml \
-  --parameters file://parameters.json \
-  --region eu-west-1 \
-  --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+# create the bucket for the stacks
+aws cloudformation create-stack \
+  --stack-name StackBucket \
+  --template-body file://stack/cloudformation/stackbucket.yaml \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --parameters \
+    ParameterKey=AccountId,ParameterValue=123456789 \
+    ParameterKey=UserName,ParameterValue=some-name \
   --on-failure DELETE
-
-# check on stack progress
-aws cloudformation describe-stack-events \
-  --stack-name LoadBalancedTailAwareCollector \
-  --output json
-
-# delete the stack
-aws cloudformation delete-stack \
-  --stack-name LoadBalancedTailAwareCollector
 
 # close the environment when done
 deactivate

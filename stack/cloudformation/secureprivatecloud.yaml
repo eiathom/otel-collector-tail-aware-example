@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC and Subnets configuration with internet access
+
+Parameters:
+  VpcName:
+    Type: String
+    Description: The name of the VPC resource
+    Default: secure-private-cloud
+  PublicSubnetName:
+    Type: String
+    Description: The name of the Subnet resource(s)
+    Default: public-subnet
+
+Resources:
+  # Defines a Virtual Private Cloud (VPC) with a CIDR block of 10.0.0.0/16
+  # This acts as a virtual network dedicated to your AWS account
+  # It's isolated from other virtual networks and hosts your AWS resources
+  SecureVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref VpcName
+
+  # These subnets are part of the VPC and are configured in different Availability Zones for high availability
+  # MapPublicIpOnLaunch: true makes any instance launched into these subnets automatically assigned a public IP address
+  # They are meant for resources that need to be accessible from the internet, like a public-facing load-balancer
+  PublicSubnetOne:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref SecureVpc
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref PublicSubnetName, "1"]]
+
+  # These subnets are part of the VPC and are configured in different Availability Zones for high availability
+  # MapPublicIpOnLaunch: true makes any instance launched into these subnets automatically assigned a public IP address
+  # They are meant for resources that need to be accessible from the internet, like a public-facing load-balancer
+  PublicSubnetTwo:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref SecureVpc
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref PublicSubnetName, "2"]]
+
+  # Provides a route for traffic between your VPC and the internet
+  # It's necessary for any resource in the public subnets to be accessible from the internet
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: internet-gateway
+
+  # Attaches the Internet Gateway to your VPC
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref SecureVpc
+      InternetGatewayId: !Ref InternetGateway
+
+  # The route table contains a set of rules, called routes, that determine where network traffic from your subnet or gateway is directed
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref SecureVpc
+      Tags:
+        - Key: Name
+          Value: public-route-table
+
+  # The PublicRoute directs all outbound traffic (0.0.0.0/0) to the Internet Gateway, enabling internet access for the VPC
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  # These associations ensure that the public subnets use the PublicRouteTable, which routes their traffic to the internet via the Internet Gateway
+  SubnetRouteTableAssociationOne:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetOne
+      RouteTableId: !Ref PublicRouteTable
+
+  # These associations ensure that the public subnets use the PublicRouteTable, which routes their traffic to the internet via the Internet Gateway
+  SubnetRouteTableAssociationTwo:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetTwo
+      RouteTableId: !Ref PublicRouteTable
+
+Outputs:
+  VpcId:
+    Description: ID of the VPC
+    Value: !GetAtt SecureVpc.VpcId
+  SubnetIds:
+    Description: ID(s) of the Subnet(s)
+    Value: !Join [",", [!Ref PublicSubnetOne, !Ref PublicSubnetTwo]]

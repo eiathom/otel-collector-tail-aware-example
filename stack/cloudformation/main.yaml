@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: OTEL Collector infrastructure
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: S3 bucket where stacks are stored
+    Default: Default
+  VpcName:
+    Type: String
+    Description: The name of the VPC resource
+    Default: secure-private-cloud
+  PublicSubnetName:
+    Type: String
+    Description: The name of the Subnet resource(s)
+    Default: public-subnet
+  HttpTrafficPort:
+    Type: Number
+    Description: The port for HTTP traffic
+    Default: 80
+  HttpTargetPort:
+    Type: Number
+    Description: The port for HTTP traffic to be forwarded to
+    Default: 4318
+
+Resources:
+  SecurePrivateCloud:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/secureprivatecloud.yaml"
+      Parameters:
+        VpcName: !Ref VpcName
+        PublicSubnetName: !Ref PublicSubnetName
+
+  PublicLoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/publicloadbalancer.yaml"
+      Parameters:
+        VpcId: !GetAtt SecurePrivateCloud.Outputs.VpcId
+        SubnetIds: !GetAtt SecurePrivateCloud.Outputs.SubnetIds
+        HttpTrafficPort: !Ref HttpTrafficPort
+        HttpTargetPort: !Ref HttpTargetPort
