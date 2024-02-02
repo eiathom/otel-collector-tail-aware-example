@@ -22,6 +22,28 @@ Parameters:
     Type: Number
     Description: The port for HTTP traffic to be forwarded to
     Default: 4318
+  LoadBalancingCollectorMaxCapacity:
+    Type: Number
+    Description: The maximum number of tasks the LoadBalancing Collector should scale out to
+    Default: 5
+  LoadBalancingCollectorMinCapacity:
+    Type: Number
+    Description: The minimum number of tasks the LoadBalancing Collector should scale in to
+    Default: 1
+  LoadBalancingCollectorScalingTargetPercentage:
+    Type: Number
+    Description: The average memory utilisation percentage used to begin scaling the LoadBalancing Collector
+    Default: 70
+  LoadBalancingCollectorDesiredCount:
+    Type: Number
+    Description: The desired number of initial tasks
+    Default: 1
+  LoadBalancingCollectorCpu:
+    Type: Number
+    Default: 256
+  LoadBalancingCollectorMemory:
+    Type: Number
+    Default: 512
 
 Resources:
   SecurePrivateCloud:
@@ -38,6 +60,24 @@ Resources:
       TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/publicloadbalancer.yaml"
       Parameters:
         VpcId: !GetAtt SecurePrivateCloud.Outputs.VpcId
-        SubnetIds: !GetAtt SecurePrivateCloud.Outputs.SubnetIds
+        PublicSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PublicSubnetIds
         HttpTrafficPort: !Ref HttpTrafficPort
         HttpTargetPort: !Ref HttpTargetPort
+
+  PrivateService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/privateservice.yaml"
+      Parameters:
+        VpcId: !GetAtt SecurePrivateCloud.Outputs.VpcId
+        PublicSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PublicSubnetIds
+        HttpTrafficPort: !Ref HttpTrafficPort
+        HttpTargetPort: !Ref HttpTargetPort
+        PublicLoadBalancerSecurityGroupId: !GetAtt PublicLoadBalancer.Outputs.PublicLoadBalancerSecurityGroupId
+        HttpTargetGroupArn: !GetAtt PublicLoadBalancer.Outputs.HttpTargetGroupArn
+        LoadBalancingCollectorMaxCapacity: !Ref LoadBalancingCollectorMaxCapacity
+        LoadBalancingCollectorMinCapacity: !Ref LoadBalancingCollectorMinCapacity
+        LoadBalancingCollectorScalingTargetPercentage: !Ref LoadBalancingCollectorScalingTargetPercentage
+        LoadBalancingCollectorDesiredCount: !Ref LoadBalancingCollectorDesiredCount
+        LoadBalancingCollectorCpu: !Ref LoadBalancingCollectorCpu
+        LoadBalancingCollectorMemory: !Ref LoadBalancingCollectorMemory

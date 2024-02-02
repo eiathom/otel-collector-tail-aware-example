@@ -18,9 +18,9 @@ exporters:
   # we are going to export metric signals directly to the back-end
   # see: https://docs.newrelic.com/docs/more-integrations/open-source-telemetry-integrations/opentelemetry/get-started/opentelemetry-set-up-your-app/#review-settings
   otlp/newrelic:
-    endpoint: ${OTLP_NEW_RELIC_EXPORTER_ENDPOINT}
+    endpoint: otlp.eu01.nr-data.net:443
     headers:
-      api-key: ${NEW_RELIC_API_KEY}
+      api-key: ${TELEMETRY_BACKEND_API_KEY}
 
   # trace and log signals will be exported downstream to the tail-aware Collector (and then on to the telemetry back-end)
   # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
