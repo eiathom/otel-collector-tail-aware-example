@@ -51,8 +51,8 @@ aws configure
 * S3
 * IAM (Read-Only)
 
-# run checks on the template for proper syntax
-cfn-lint --template template.yaml --region eu-west-1 --ignore-checks W
+# run checks on the template
+cfn-lint --template stack/cloudformation/main.yaml --region eu-west-1
 
 # create the bucket for the stacks
 aws cloudformation create-stack \
