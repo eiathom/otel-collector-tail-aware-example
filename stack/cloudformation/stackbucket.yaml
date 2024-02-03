@@ -1,23 +1,11 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Secure S3 Bucket accessible only by members of a specific IAM group
-
-Parameters:
-  AccountId:
-    Type: String
-    Description: AWS Account ID of the bucket owner group
-    Default: Default
-    NoEcho: true
-  UserName:
-    Type: String
-    Description: The name of the IAM user that should have access to the bucket
-    Default: Default
-    NoEcho: true
+Description: Secure S3 Bucket accessible only by members of a specific account
 
 Resources:
   StackBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AccountId}-${UserName}-stack-bucket"
+      BucketName: !Sub "${AWS::AccountId}-stack-bucket"
 
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -29,7 +17,7 @@ Resources:
           - Sid: "AllowSpecificUserAccessOnly"
             Effect: "Allow"
             Principal:
-              AWS: !Sub "arn:aws:iam::${AccountId}:user/${UserName}"
+              AWS: !Sub "${AWS::AccountId}"
             Action:
               - "s3:GetObject"
               - "s3:PutObject"

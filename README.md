@@ -55,14 +55,7 @@ aws configure
 cfn-lint --template stack/cloudformation/main.yaml --region eu-west-1
 
 # create the bucket for the stacks
-aws cloudformation create-stack \
-  --stack-name StackBucket \
-  --template-body file://stack/cloudformation/stackbucket.yaml \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --parameters \
-    ParameterKey=AccountId,ParameterValue=123456789 \
-    ParameterKey=UserName,ParameterValue=some-name \
-  --on-failure DELETE
+STACK_NAME=StackBucket STACK_FILE_NAME=stackbucket.yaml ./scripts/create_stack.bash
 
 # close the environment when done
 deactivate
