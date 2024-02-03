@@ -35,6 +35,7 @@ exporters:
       # choosing to resolve hostnames by querying DNS
       dns:
         # hostname to query in order to obtain the list of IP addresses
+        # TODO: move each part of this naming to variables
         hostname: "tailawarecollector.otelcollector.local"
         # port to be used for exporting the traces to the IP addresses resolved (we're interested in hitting downstream collector 4318 port [HTTP, JSON])
         port: 4318
