@@ -44,6 +44,16 @@ Parameters:
   LoadBalancingCollectorMemory:
     Type: Number
     Default: 512
+  TailAwareCollectorDesiredCount:
+    Type: Number
+    Description: The desired number of initial tasks
+    Default: 3
+  TailAwareCollectorCpu:
+    Type: Number
+    Default: 256
+  TailAwareCollectorMemory:
+    Type: Number
+    Default: 512
 
 Resources:
   SecurePrivateCloud:
@@ -71,9 +81,9 @@ Resources:
       Parameters:
         VpcId: !GetAtt SecurePrivateCloud.Outputs.VpcId
         PublicSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PublicSubnetIds
+        PublicLoadBalancerSecurityGroupId: !GetAtt PublicLoadBalancer.Outputs.PublicLoadBalancerSecurityGroupId
         HttpTrafficPort: !Ref HttpTrafficPort
         HttpTargetPort: !Ref HttpTargetPort
-        PublicLoadBalancerSecurityGroupId: !GetAtt PublicLoadBalancer.Outputs.PublicLoadBalancerSecurityGroupId
         HttpTargetGroupArn: !GetAtt PublicLoadBalancer.Outputs.HttpTargetGroupArn
         LoadBalancingCollectorMaxCapacity: !Ref LoadBalancingCollectorMaxCapacity
         LoadBalancingCollectorMinCapacity: !Ref LoadBalancingCollectorMinCapacity
@@ -81,3 +91,6 @@ Resources:
         LoadBalancingCollectorDesiredCount: !Ref LoadBalancingCollectorDesiredCount
         LoadBalancingCollectorCpu: !Ref LoadBalancingCollectorCpu
         LoadBalancingCollectorMemory: !Ref LoadBalancingCollectorMemory
+        TailAwareCollectorDesiredCount: !Ref TailAwareCollectorDesiredCount
+        TailAwareCollectorCpu: !Ref TailAwareCollectorCpu
+        TailAwareCollectorMemory: !Ref TailAwareCollectorMemory

@@ -30,6 +30,14 @@ Parameters:
     Type: String
     Description: The name of the namespace for service discovery (discovery of Collectors hostnames)
     Default: otelcollector
+  ImageName:
+    Type: String
+    Description: The image to leverage for the task
+    Default: "otel/opentelemetry-collector:0.89.0"
+  TelemetryBackendApiKeySsmKeyName:
+    Type: AWS::SSM::Parameter::Name
+    Description: Name of the SSM secret parameter key whose value is a telemetry backend API key
+    Default: "/otel/collector/configuration/telemetry-backend-api-key"
   LoadBalancingCollectorMaxCapacity:
     Type: Number
     Description: The maximum number of tasks the LoadBalancing Collector should scale out to
@@ -46,10 +54,6 @@ Parameters:
     Type: String
     Description: The name of the load balancing collector service
     Default: loadbalancingcollector
-  ImageName:
-    Type: String
-    Description: The image to leverage for the task
-    Default: "otel/opentelemetry-collector:0.89.0"
   LoadBalancingCollectorDesiredCount:
     Type: Number
     Description: The desired number of initial tasks
@@ -61,10 +65,6 @@ Parameters:
   LoadBalancingCollectorMemory:
     Type: Number
     Default: 512
-  TelemetryBackendApiKeySsmKeyName:
-    Type: AWS::SSM::Parameter::Name
-    Description: Name of the SSM secret parameter key whose value is a telemetry backend API key
-    Default: "/otel/collector/configuration/telemetry-backend-api-key"
   # value of the SSM variable is: env:COLLECTOR_CONFIGURATION
   LoadBalancingCollectorConfMap:
     Type: AWS::SSM::Parameter::Value<String>
@@ -74,6 +74,30 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Description: Name of the SSM parameter key whose value is the actual configuration
     Default: "/otel/collector/configuration/loadbalancing-collector-configuration"
+  TailAwareCollectorServiceName:
+    Type: String
+    Description: The name of the tail-aware collector service
+    Default: tailawarecollector
+  TailAwareCollectorDesiredCount:
+    Type: Number
+    Description: The desired number of initial tasks
+    Default: 3
+  # 1024 == 1 CPU
+  TailAwareCollectorCpu:
+    Type: Number
+    Default: 256
+  TailAwareCollectorMemory:
+    Type: Number
+    Default: 512
+  # value of the SSM variable is: env:COLLECTOR_CONFIGURATION
+  TailAwareCollectorConfMap:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: Name of the SSM parameter key whose value points to the location of the Collector configuration
+    Default: "/otel/collector/configuration/tailaware-collector-conf-map-type"
+  TailAwareCollectorConfigurationYaml:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: Name of the SSM parameter key whose value is the actual configuration
+    Default: "/otel/collector/configuration/tailaware-collector-configuration"
 
 Resources:
   PrivateServiceSecurityGroup:
@@ -86,22 +110,6 @@ Resources:
           FromPort: !Ref HttpTrafficPort
           ToPort: !Ref HttpTrafficPort
           SourceSecurityGroupId: !Ref PublicLoadBalancerSecurityGroupId
-
-  OtelCollectorCluster:
-    Type: AWS::ECS::Cluster
-
-  OtelCollectorCloudMapNamespace:
-    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
-    Properties:
-      Name: !Sub "${OtelCollectorNamespaceName}.local"
-      Vpc: !Ref VpcId
-
-  # LoadBalancingCollector: Scalable Service
-  LoadBalancingCollectorDiscovery:
-    Type: AWS::ServiceDiscovery::Service
-    Properties:
-      Name: loadbalancingcollector
-      NamespaceId: !Ref OtelCollectorCloudMapNamespace
 
   ECSTaskRole:
     Type: AWS::IAM::Role
@@ -150,6 +158,22 @@ Resources:
         - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
         - "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
         - "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+
+  OtelCollectorCluster:
+    Type: AWS::ECS::Cluster
+
+  OtelCollectorCloudMapNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: !Sub "${OtelCollectorNamespaceName}.local"
+      Vpc: !Ref VpcId
+
+  # LoadBalancingCollector: Scalable Service
+  LoadBalancingCollectorDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: !Ref LoadBalancingCollectorServiceName
+      NamespaceId: !Ref OtelCollectorCloudMapNamespace
 
   LoadBalancingCollectorTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -241,3 +265,76 @@ Resources:
         # in seconds, defaulting to both being 5 minutes of cooldown (this should be tuned after many load generation verification runs)
         ScaleInCooldown: 300
         ScaleOutCooldown: 300
+
+  # TailAwareCollector: Stateful Service
+  TailAwareCollectorDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: !Ref TailAwareCollectorServiceName
+      NamespaceId: !Ref OtelCollectorCloudMapNamespace
+
+  TailAwareCollectorTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref TailAwareCollectorServiceName
+      Cpu: !Ref TailAwareCollectorCpu
+      Memory: !Ref TailAwareCollectorMemory
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSTaskRole.Arn
+      ContainerDefinitions:
+        - Name: !Ref TailAwareCollectorServiceName
+          Image: !Ref ImageName
+          Cpu: !Ref TailAwareCollectorCpu
+          Memory: !Ref TailAwareCollectorMemory
+          PortMappings:
+            - ContainerPort: !Ref HttpTargetPort
+              Protocol: tcp
+              AppProtocol: http
+          Command:
+            - "--config"
+            - !Sub "${TailAwareCollectorConfMap}"
+          Secrets:
+            - Name: TELEMETRY_BACKEND_API_KEY
+              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendApiKeySsmKeyName}"
+          Environment:
+            - Name: COLLECTOR_CONFIGURATION
+              Value: !Ref TailAwareCollectorConfigurationYaml
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-create-group: "True"
+              awslogs-group: !Ref TailAwareCollectorServiceName
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: otel
+
+  TailAwareCollector:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref TailAwareCollectorServiceName
+      Cluster: !Ref OtelCollectorCluster
+      TaskDefinition: !Ref TailAwareCollectorTaskDefinition
+      DesiredCount: !Ref TailAwareCollectorDesiredCount
+      LaunchType: FARGATE
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      ServiceRegistries:
+        - RegistryArn: !GetAtt TailAwareCollectorDiscovery.Arn
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref PrivateServiceSecurityGroup
+      LoadBalancers:
+        - ContainerName: !Ref TailAwareCollectorServiceName
+          ContainerPort: !Ref HttpTargetPort
+          TargetGroupArn: !Ref HttpTargetGroupArn
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref TailAwareCollectorServiceName, "service"]]
