@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail
+set -o pipefail
 
 STACK_NAME=${STACK_NAME}
 STACK_FILE_NAME=${STACK_FILE_NAME}

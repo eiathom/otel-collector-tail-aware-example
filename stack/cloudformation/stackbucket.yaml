@@ -6,6 +6,9 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${AWS::AccountId}-stack-bucket"
+      VersioningConfiguration:
+        # we want to generate and manage versioning ourselves
+        Status: Suspended
 
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
