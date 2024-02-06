@@ -38,7 +38,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # check of the bucket exists
-if ${aws_command} s3api head-bucket --bucket "${BUCKET_NAME}" 2>&1; then
+if ${aws_command} s3api head-bucket --bucket "${BUCKET_NAME}" > /dev/null 2>&1; then
   echo "INFO: Bucket '${BUCKET_NAME}' exists, proceeding with upload attempt..."
 else
   echo "ERROR: Bucket '${BUCKET_NAME}' does not exist or you do not have permission to access it, exiting"
