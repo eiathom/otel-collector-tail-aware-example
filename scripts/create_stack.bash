@@ -30,7 +30,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # check if stack exists
-describe_stack_command_result=$(${aws_command} cloudformation describe-stacks --stack-name ${STACK_NAME} 2>&1)
+${aws_command} cloudformation describe-stacks --stack-name ${STACK_NAME} 2>&1
 if [ $? -ne 0 ]; then
   echo "Stack '${STACK_NAME}' does not exist, creating from stack file '${STACK_FILE_NAME}'..."
   ${aws_command} cloudformation create-stack \
@@ -43,7 +43,7 @@ if [ $? -ne 0 ]; then
   ${aws_command} cloudformation wait stack-create-complete --stack-name ${STACK_NAME}
 
   echo "Checking stack has been created successfully..."
-  describe_stack_command_result=$(${aws_command} cloudformation describe-stacks --stack-name ${STACK_NAME} 2>&1)
+  ${aws_command} cloudformation describe-stacks --stack-name ${STACK_NAME} 2>&1
   if [ $? -ne 0 ]; then
     echo "ERROR: 'Could not determine if ${STACK_NAME}' has been created; check console"
     exit 1
