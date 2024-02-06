@@ -24,14 +24,14 @@ if [ $? -ne 0 ]; then
 fi
 
 # put the parameter
-${aws_command} ssm put-parameter --name "${PARAMETER_KEY_NAME}" --value "${PARAMETER_VALUE}" --type String --overwrite 2>&1
+${aws_command} ssm put-parameter --name "${PARAMETER_KEY_NAME}" --value "${PARAMETER_VALUE}" --type String --overwrite > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "ERROR: Unable to create/update variable '${PARAMETER_KEY_NAME}', exiting"
   exit 1
 fi
 
 # check the parameter exists
-${aws_command} ssm get-parameter --name "${PARAMETER_KEY_NAME}" 2>&1
+${aws_command} ssm get-parameter --name "${PARAMETER_KEY_NAME}" > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "ERROR: Parameter '${PARAMETER_KEY_NAME}' does not exist, exiting"
   exit 1
