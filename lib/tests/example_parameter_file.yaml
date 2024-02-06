@@ -1,0 +1,13 @@
+environment:
+  test:
+    parameters:
+      DatabaseUsername: ${DATABASE_USERNAME:Default-dev}
+      DesiredCount: 1
+  dev:
+    parameters:
+      DatabaseUsername: ${DATABASE_USERNAME:Default-dev}
+      DesiredCount: 1
+  prod:
+    parameters:
+      DatabaseUsername: ${DATABASE_USERNAME:Default-prod}
+      DesiredCount: 2
