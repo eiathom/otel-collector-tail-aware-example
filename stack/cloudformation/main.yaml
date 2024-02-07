@@ -5,14 +5,6 @@ Parameters:
   BucketName:
     Type: String
     Description: S3 bucket where stacks are stored
-  VpcName:
-    Type: String
-    Description: The name of the VPC resource
-    Default: secure-private-cloud
-  PublicSubnetName:
-    Type: String
-    Description: The name of the Subnet resource(s)
-    Default: public-subnet
   HttpTrafficPort:
     Type: Number
     Description: The port for HTTP traffic
@@ -71,9 +63,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/secureprivatecloud.yaml"
-      Parameters:
-        VpcName: !Ref VpcName
-        PublicSubnetName: !Ref PublicSubnetName
 
   PublicLoadBalancer:
     Type: AWS::CloudFormation::Stack
