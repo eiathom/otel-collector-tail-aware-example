@@ -49,6 +49,7 @@ aws configure
 * CloudFormation
 * CloudMap
 * S3
+* SSM
 * IAM (Read-Only)
 
 # run checks on the template

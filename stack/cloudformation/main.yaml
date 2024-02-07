@@ -22,6 +22,18 @@ Parameters:
     Type: Number
     Description: The port for HTTP traffic to be forwarded to
     Default: 4318
+  TelemetryBackendApiKeySsmValue:
+    Type: String
+    Description: Value of the telemetry API key
+    NoEcho: true
+  LoadBalancingCollectorConfigurationSsmValue:
+    Type: String
+    Description: Value of the LoadBalancing Collector configuration
+    NoEcho: true
+  TailAwareCollectorConfigurationSsmValue:
+    Type: String
+    Description: Value of the TailAware Collector configuration
+    NoEcho: true
   LoadBalancingCollectorMaxCapacity:
     Type: Number
     Description: The maximum number of tasks the LoadBalancing Collector should scale out to
@@ -73,6 +85,15 @@ Resources:
         PublicSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PublicSubnetIds
         HttpTrafficPort: !Ref HttpTrafficPort
         HttpTargetPort: !Ref HttpTargetPort
+
+  SecureSystemParameters:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/securesystemparameters.yaml"
+      Parameters:
+        TelemetryBackendApiKeySsmValue: !Ref TelemetryBackendApiKeySsmValue
+        LoadBalancingCollectorConfigurationSsmValue: !Ref LoadBalancingCollectorConfigurationSsmValue
+        TailAwareCollectorConfigurationSsmValue: !Ref TailAwareCollectorConfigurationSsmValue
 
   PrivateService:
     Type: AWS::CloudFormation::Stack
