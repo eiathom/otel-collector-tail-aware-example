@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Secure system parameters stack
+
+Parameters:
+  CollectorSecureParameterPath:
+    Type: String
+    Description: Name of the path to Collector parameters
+    Default: "/otel/collector/configuration/"
+  TelemetryBackendApiKeySsmKeyName:
+    Type: String
+    Description: Name of the variable to hold telemetry API key value
+    Default: telemetry-backend-api-key
+  TelemetryBackendApiKeySsmValue:
+    Type: String
+    Description: Value of the telemetry API key
+    NoEcho: true
+  # LoadBalancing
+  LoadBalancingCollectorConfSsmKeyName:
+    Type: String
+    Description: Name of the variable to hold LoadBalancing Collector conf-map value
+    Default: loadbalancing-collector-conf-map-type
+  LoadBalancingCollectorConfMapSsmValue:
+    Type: String
+    Description: Value of the LoadBalancing Collector ConfMap
+    Default: "env:COLLECTOR_CONFIGURATION"
+    NoEcho: true
+  LoadBalancingCollectorConfigurationSsmKeyName:
+    Type: String
+    Description: Name of the variable to hold LoadBalancing Collector configuration value
+    Default: loadbalancing-collector-configuration
+  LoadBalancingCollectorConfigurationSsmValue:
+    Type: String
+    Description: Value of the LoadBalancing Collector configuration
+    NoEcho: true
+  # TailAware
+  TailAwareCollectorConfSsmKeyName:
+    Type: String
+    Description: Name of the variable to hold TailAware Collector conf-map value
+    Default: tail-aware-collector-conf-map-type
+  TailAwareCollectorConfMapSsmValue:
+    Type: String
+    Description: Value of the TailAware Collector ConfMap
+    Default: "env:COLLECTOR_CONFIGURATION"
+    NoEcho: true
+  TailAwareCollectorConfigurationSsmKeyName:
+    Type: String
+    Description: Name of the variable to hold TailAware Collector configuration value
+    Default: tail-aware-collector-configuration
+  TailAwareCollectorConfigurationSsmValue:
+    Type: String
+    Description: Value of the TailAware Collector configuration
+    NoEcho: true
+
+Resources:
+  # TODO
+
+Outputs:
+  TelemetryBackendApiKeySsmResourceName:
+    Description: Name of the TelemetryBackendApiKeySsmResource SSM key
+    Value: !Ref TelemetryBackendApiKeySsmResource
+  LoadBalancingCollectorConfSsmResourceName:
+    Description: Name of the LoadBalancingCollectorConfSsmResource SSM key
+    Value: !Ref LoadBalancingCollectorConfSsmResource
+  LoadBalancingCollectorConfigurationSsmResourceName:
+    Description: Name of the LoadBalancingCollectorConfigurationSsmResource SSM key
+    Value: !Ref LoadBalancingCollectorConfigurationSsmResource
+  TailAwareCollectorConfSsmResourceName:
+    Description: Name of the TailAwareCollectorConfSsmResource SSM key
+    Value: !Ref TailAwareCollectorConfSsmResource
+  TailAwareCollectorConfigurationSsmResourceName:
+    Description: Name of the TailAwareCollectorConfigurationSsmResource SSM key
+    Value: !Ref TailAwareCollectorConfigurationSsmResource
