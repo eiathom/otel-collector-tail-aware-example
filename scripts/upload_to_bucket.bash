@@ -23,9 +23,7 @@ full_path_of_directory=$(git rev-parse --show-toplevel)
 file_full_path=$(find ${full_path_of_directory} -type f -name "${FILE_NAME}")
 
 # check of the file exists (locally)
-if [ -n "${file_full_path}" ]; then
-  echo "INFO: Full path of file: '${FILE_NAME}' is '${file_full_path}'"
-else
+if [ ! -n "${file_full_path}" ]; then
   echo "ERROR: '${FILE_NAME}' file is not found, exiting"
   exit 1
 fi
@@ -46,7 +44,7 @@ else
 fi
 
 # upload the local file to remote
-aws s3 cp "${file_full_path}" "s3://${BUCKET_NAME}/${FILE_NAME}"
+aws s3 cp "${file_full_path}" "s3://${BUCKET_NAME}/${FILE_NAME}" > /dev/null 2>&1
 if [ $? -eq 0 ]; then
   echo "INFO: '${FILE_NAME}' uploaded to ${BUCKET_NAME} bucket successfully"
 else
