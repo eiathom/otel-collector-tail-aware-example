@@ -2,8 +2,6 @@ environment:
   dev:
     parameters:
       BucketName: ${STACK_BUCKET_NAME}
-      VpcName: secure-private-cloud
-      PublicSubnetName: public-subnet
       HttpTrafficPort: 80
       HttpTargetPort: 4318
       TelemetryBackendApiKeySsmValue: ${TELEMETRY_BACKEND_API_KEY}
