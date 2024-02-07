@@ -6,6 +6,9 @@ environment:
       PublicSubnetName: public-subnet
       HttpTrafficPort: 80
       HttpTargetPort: 4318
+      TelemetryBackendApiKeySsmValue: ${TELEMETRY_BACKEND_API_KEY}
+      LoadBalancingCollectorConfigurationSsmValue: ${LOAD_BALANCING_COLLECTOR_CONFIGURATION}
+      TailAwareCollectorConfigurationSsmValue: ${TAIL_AWARE_COLLECTOR_CONFIGURATION}
       LoadBalancingCollectorMaxCapacity: 5
       LoadBalancingCollectorMinCapacity: 1
       LoadBalancingCollectorScalingTargetPercentage: 70

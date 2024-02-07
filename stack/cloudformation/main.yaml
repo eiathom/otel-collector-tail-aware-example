@@ -5,7 +5,6 @@ Parameters:
   BucketName:
     Type: String
     Description: S3 bucket where stacks are stored
-    Default: Default
   VpcName:
     Type: String
     Description: The name of the VPC resource
