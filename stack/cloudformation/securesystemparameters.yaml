@@ -52,7 +52,59 @@ Parameters:
     NoEcho: true
 
 Resources:
-  # TODO
+  TelemetryBackendApiKeySsmResource:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${CollectorSecureParameterPath}${TelemetryBackendApiKeySsmKeyName}"
+      Type: SecureString
+      Value: !Ref TelemetryBackendApiKeySsmValue
+      Description: Secure SSM parameter created to store Telemetry API key
+      Tier: Standard
+      # Policies:
+      #   - PolicyName: AllowTelemetryApiKeyParameterAccess
+      #     PolicyDocument:
+      #       Version: '2012-10-17'
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - ssm:GetParameter
+      #           Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${CollectorSecureParameterPath}${TelemetryBackendApiKeySsmKeyName}"
+
+  LoadBalancingCollectorConfSsmResource:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${CollectorSecureParameterPath}${LoadBalancingCollectorConfSsmKeyName}"
+      Type: String
+      Value: !Ref LoadBalancingCollectorConfMapSsmValue
+      Description: Secure SSM parameter created to store LoadBalancing Collector ConfMap
+      Tier: Standard
+
+  LoadBalancingCollectorConfigurationSsmResource:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${CollectorSecureParameterPath}${LoadBalancingCollectorConfigurationSsmKeyName}"
+      Type: String
+      Value: !Ref LoadBalancingCollectorConfigurationSsmValue
+      Description: Secure SSM parameter created to store LoadBalancing Collector configuration
+      Tier: Standard
+
+  TailAwareCollectorConfSsmResource:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${CollectorSecureParameterPath}${TailAwareCollectorConfSsmKeyName}"
+      Type: String
+      Value: !Ref TailAwareCollectorConfMapSsmValue
+      Description: Secure SSM parameter created to store TailAware Collector configuration
+      Tier: Standard
+
+  TailAwareCollectorConfigurationSsmResource:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${CollectorSecureParameterPath}${TailAwareCollectorConfigurationSsmKeyName}"
+      Type: String
+      Value: !Ref TailAwareCollectorConfigurationSsmValue
+      Description: Secure SSM parameter created to store TailAware Collector configuration
+      Tier: Standard
 
 Outputs:
   TelemetryBackendApiKeySsmResourceName:

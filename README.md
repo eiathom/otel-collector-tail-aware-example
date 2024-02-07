@@ -36,6 +36,9 @@ python -m pip install -r requirements/development.txt
 # install cfn-lint
 python -m pip install cfn-lint
 
+# install checkov
+python -m pip install checkov
+
 # install aws cli
 python -m pip install awscli
 
@@ -52,8 +55,11 @@ aws configure
 * SSM
 * IAM (Read-Only)
 
-# run checks on the template
-cfn-lint --template stack/cloudformation/main.yaml --region eu-west-1
+# run linting checks on the template
+cfn-lint --template ./stack/cloudformation/main.yaml --region eu-west-1
+
+# run security and compliance checks on the template
+checkov -f ./stack/cloudformation/main.yaml
 
 # create the bucket for the stacks
 STACK_NAME=StackBucket STACK_FILE_NAME=stackbucket.yaml ./scripts/create_stack.bash
