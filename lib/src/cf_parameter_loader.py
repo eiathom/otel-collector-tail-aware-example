@@ -51,5 +51,4 @@ if __name__ == "__main__":
     environment_configuration = get_environment_configuration_from_python_object(configuration, environment_name)
     interpreted_parameters = get_interpreted_environment_configuration(environment_configuration["parameters"])
 
-    # DATABASE_USERNAME=someone python ./lib/src/cf_parameter_loader.py ./lib/tests/example_parameter_file.yaml test
     print(get_string_for_cf_parameter_overrides_option(interpreted_parameters))

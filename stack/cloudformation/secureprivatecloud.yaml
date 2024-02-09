@@ -156,10 +156,16 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NATGateway
 
-  PrivateSubnetRouteTableAssociation:
+  PrivateSubnetOneRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnetOne
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnetTwoRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetTwo
       RouteTableId: !Ref PrivateRouteTable
 
 Outputs:
@@ -168,11 +174,7 @@ Outputs:
     Value: !GetAtt SecureVpc.VpcId
   PublicSubnetIds:
     Description: ID(s) of the public Subnet(s)
-    # would need to increase cost to allow egress out from tasks
-    # Value: !Join [",", [!Ref PublicSubnetOne, !Ref PublicSubnetTwo]]
-    Value: !Join [",", [!Ref PublicSubnetOne]]
+    Value: !Join [",", [!Ref PublicSubnetOne, !Ref PublicSubnetTwo]]
   PrivateSubnetIds:
     Description: ID(s) of the private Subnet(s)
-    # would need to increase cost to allow egress out from tasks
-    # Value: !Join [",", [!Ref PrivateSubnetOne, !Ref PrivateSubnetTwo]]
-    Value: !Join [",", [!Ref PrivateSubnetOne]]
+    Value: !Join [",", [!Ref PrivateSubnetOne, !Ref PrivateSubnetTwo]]
