@@ -129,13 +129,50 @@ Resources:
       SubnetId: !Ref PublicSubnetTwo
       RouteTableId: !Ref PublicRouteTable
 
+  # allow private subnets internet egress only
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIP.AllocationId
+      SubnetId: !Ref PublicSubnetOne
+
+  # create a public IP for internet egress
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  # The route table contains a set of rules, called routes, that determine where network traffic from your subnet or gateway is directed
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref SecureVpc
+
+  # The PrivateRoute directs all internal traffic to the NAT Gateway, enabling internet access for tasks in private subnet
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetOne
+      RouteTableId: !Ref PrivateRouteTable
+
 Outputs:
   VpcId:
     Description: ID of the VPC
     Value: !GetAtt SecureVpc.VpcId
   PublicSubnetIds:
     Description: ID(s) of the public Subnet(s)
-    Value: !Join [",", [!Ref PublicSubnetOne, !Ref PublicSubnetTwo]]
+    # would need to increase cost to allow egress out from tasks
+    # Value: !Join [",", [!Ref PublicSubnetOne, !Ref PublicSubnetTwo]]
+    Value: !Join [",", [!Ref PublicSubnetOne]]
   PrivateSubnetIds:
     Description: ID(s) of the private Subnet(s)
-    Value: !Join [",", [!Ref PrivateSubnetOne, !Ref PrivateSubnetTwo]]
+    # would need to increase cost to allow egress out from tasks
+    # Value: !Join [",", [!Ref PrivateSubnetOne, !Ref PrivateSubnetTwo]]
+    Value: !Join [",", [!Ref PrivateSubnetOne]]
