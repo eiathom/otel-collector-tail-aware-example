@@ -40,6 +40,9 @@ exporters:
         # port to be used for exporting the traces to the IP addresses resolved (we're interested in hitting downstream collector 4318 port [HTTP, JSON])
         port: 4318
 
+extensions:
+  health_check:
+
 service:
   pipelines:
     traces:
