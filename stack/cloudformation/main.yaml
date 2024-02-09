@@ -5,6 +5,7 @@ Parameters:
   BucketName:
     Type: String
     Description: S3 bucket where stacks are stored
+    Default: 515383396577-stack-bucket
   HttpTrafficPort:
     Type: Number
     Description: The port for HTTP traffic
@@ -16,14 +17,17 @@ Parameters:
   TelemetryBackendApiKeySsmValue:
     Type: String
     Description: Value of the telemetry API key
+    Default: Default
     NoEcho: true
   LoadBalancingCollectorConfigurationSsmValue:
     Type: String
     Description: Value of the LoadBalancing Collector configuration
+    Default: Default
     NoEcho: true
   TailAwareCollectorConfigurationSsmValue:
     Type: String
     Description: Value of the TailAware Collector configuration
+    Default: Default
     NoEcho: true
   LoadBalancingCollectorMaxCapacity:
     Type: Number
@@ -89,12 +93,12 @@ Resources:
       TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/privateservice.yaml"
       Parameters:
         VpcId: !GetAtt SecurePrivateCloud.Outputs.VpcId
-        PublicSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PublicSubnetIds
+        PrivateSubnetIds: !GetAtt SecurePrivateCloud.Outputs.PrivateSubnetIds
         PublicLoadBalancerSecurityGroupId: !GetAtt PublicLoadBalancer.Outputs.PublicLoadBalancerSecurityGroupId
         HttpTrafficPort: !Ref HttpTrafficPort
         HttpTargetPort: !Ref HttpTargetPort
         HttpTargetGroupArn: !GetAtt PublicLoadBalancer.Outputs.HttpTargetGroupArn
-        TelemetryBackendApiKeySsmKeyName: !GetAtt SecureSystemParameters.Outputs.TelemetryBackendApiKeySsmResourceName
+        # TelemetryBackendApiKeySsmKeyName: !GetAtt SecureSystemParameters.Outputs.TelemetryBackendApiKeySsmResourceName
         LoadBalancingCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfSsmResourceName
         LoadBalancingCollectorConfigurationYaml: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfigurationSsmResourceName
         TailAwareCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.TailAwareCollectorConfSsmResourceName

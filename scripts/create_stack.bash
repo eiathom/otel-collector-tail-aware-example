@@ -37,7 +37,7 @@ echo "INFO: Create/Update Stack '${STACK_NAME}' from stack file '${STACK_FILE_NA
 if [ -z "${PARAMETER_OVERRIDES_STRING}" ]; then
   ${aws_command} cloudformation deploy --stack-name "${STACK_NAME}" --template-file "${stack_file_full_path}" --capabilities CAPABILITY_IAM > /dev/null 2>&1
 else
-  ${aws_command} cloudformation deploy --stack-name "${STACK_NAME}" --template-file "${stack_file_full_path}" --capabilities CAPABILITY_IAM --parameter-overrides "${PARAMETER_OVERRIDES_STRING}" > /dev/null 2>&1
+  ${aws_command} cloudformation deploy --stack-name "${STACK_NAME}" --template-file "${stack_file_full_path}" --capabilities CAPABILITY_IAM --parameter-overrides "${PARAMETER_OVERRIDES_STRING}"
 fi
 if [ $? -ne 0 ]; then
   echo "ERROR: Stack '${STACK_NAME}' could not be created, check AWS console"

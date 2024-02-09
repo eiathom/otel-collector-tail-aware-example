@@ -53,6 +53,9 @@ exporters:
     headers:
       api-key: ${TELEMETRY_BACKEND_API_KEY}
 
+extensions:
+  health_check:
+
 service:
   pipelines:
     traces:

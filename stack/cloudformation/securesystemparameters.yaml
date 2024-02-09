@@ -52,14 +52,14 @@ Parameters:
     NoEcho: true
 
 Resources:
-  TelemetryBackendApiKeySsmResource:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "${CollectorSecureParameterPath}${TelemetryBackendApiKeySsmKeyName}"
-      Type: SecureString
-      Value: !Ref TelemetryBackendApiKeySsmValue
-      Description: Secure SSM parameter created to store Telemetry API key
-      Tier: Standard
+  # TelemetryBackendApiKeySsmResource:
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     Name: !Sub "${CollectorSecureParameterPath}${TelemetryBackendApiKeySsmKeyName}"
+  #     Type: SecureString
+  #     Value: !Ref TelemetryBackendApiKeySsmValue
+  #     Description: Secure SSM parameter created to store Telemetry API key
+  #     Tier: Standard
       # Policies:
       #   - PolicyName: AllowTelemetryApiKeyParameterAccess
       #     PolicyDocument:
@@ -107,9 +107,9 @@ Resources:
       Tier: Standard
 
 Outputs:
-  TelemetryBackendApiKeySsmResourceName:
-    Description: Name of the TelemetryBackendApiKeySsmResource SSM key
-    Value: !Ref TelemetryBackendApiKeySsmResource
+  # TelemetryBackendApiKeySsmResourceName:
+  #   Description: Name of the TelemetryBackendApiKeySsmResource SSM key
+  #   Value: !Ref TelemetryBackendApiKeySsmResource
   LoadBalancingCollectorConfSsmResourceName:
     Description: Name of the LoadBalancingCollectorConfSsmResource SSM key
     Value: !Ref LoadBalancingCollectorConfSsmResource

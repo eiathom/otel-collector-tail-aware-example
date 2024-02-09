@@ -34,10 +34,10 @@ Parameters:
     Type: String
     Description: The image to leverage for the task
     Default: "otel/opentelemetry-collector:0.89.0"
-  TelemetryBackendApiKeySsmKeyName:
-    Type: AWS::SSM::Parameter::Name
-    Description: Name of the SSM secret parameter key whose value is a telemetry backend API key
-    Default: "/otel/collector/configuration/telemetry-backend-api-key"
+  # TelemetryBackendApiKeySsmKeyName:
+  #   Type: AWS::SSM::Parameter::Name
+  #   Description: Name of the SSM secret parameter key whose value is a telemetry backend API key
+  #   Default: "/otel/collector/configuration/telemetry-backend-api-key"
   LoadBalancingCollectorMaxCapacity:
     Type: Number
     Description: The maximum number of tasks the LoadBalancing Collector should scale out to
@@ -173,7 +173,11 @@ Resources:
     Type: AWS::ServiceDiscovery::Service
     Properties:
       Name: !Ref LoadBalancingCollectorServiceName
-      NamespaceId: !Ref OtelCollectorCloudMapNamespace
+      DnsConfig:
+        NamespaceId: !Ref OtelCollectorCloudMapNamespace
+        DnsRecords:
+          - TTL: 300
+            Type: A
 
   LoadBalancingCollectorTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -198,9 +202,9 @@ Resources:
           Command:
             - "--config"
             - !Sub "${LoadBalancingCollectorConfMap}"
-          Secrets:
-            - Name: TELEMETRY_BACKEND_API_KEY
-              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendApiKeySsmKeyName}"
+          # Secrets:
+          #   - Name: TELEMETRY_BACKEND_API_KEY
+          #     ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendApiKeySsmKeyName}"
           Environment:
             - Name: COLLECTOR_CONFIGURATION
               Value: !Ref LoadBalancingCollectorConfigurationYaml
@@ -271,7 +275,11 @@ Resources:
     Type: AWS::ServiceDiscovery::Service
     Properties:
       Name: !Ref TailAwareCollectorServiceName
-      NamespaceId: !Ref OtelCollectorCloudMapNamespace
+      DnsConfig:
+        NamespaceId: !Ref OtelCollectorCloudMapNamespace
+        DnsRecords:
+          - TTL: 300
+            Type: A
 
   TailAwareCollectorTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -296,9 +304,9 @@ Resources:
           Command:
             - "--config"
             - !Sub "${TailAwareCollectorConfMap}"
-          Secrets:
-            - Name: TELEMETRY_BACKEND_API_KEY
-              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendApiKeySsmKeyName}"
+          # Secrets:
+          #   - Name: TELEMETRY_BACKEND_API_KEY
+          #     ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendApiKeySsmKeyName}"
           Environment:
             - Name: COLLECTOR_CONFIGURATION
               Value: !Ref TailAwareCollectorConfigurationYaml
