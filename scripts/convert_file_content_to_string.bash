@@ -22,4 +22,4 @@ if [ ! -n "${file_full_path}" ]; then
 fi
 
 # convert content to string
-echo "\"$(cat ${file_full_path})\""
+echo "$(cat ${file_full_path})"
