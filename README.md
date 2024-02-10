@@ -64,6 +64,29 @@ checkov -f ./stack/cloudformation/main.yaml
 # create the bucket for the stacks
 STACK_NAME=StackBucket STACK_FILE_NAME=stackbucket.yaml ./scripts/create_stack.bash
 
+# publish telemetry backend API key as secure parameter
+PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-api-key \
+    PARAMETER_VALUE="${TELEMETRY_API_KEY}" \
+    SECURE_STRING=1 \
+    ./scripts/create_update_system_variable.bash
+
+# publish Collector configuration as parameters
+PARAMETER_KEY_NAME=/otel/collector/configuration/loadbalancing-collector-conf-map-type \
+    PARAMETER_VALUE="env:COLLECTOR_CONFIGURATION" \
+    ./scripts/create_update_system_variable.bash
+
+PARAMETER_KEY_NAME=/otel/collector/configuration/loadbalancing-collector-configuration \
+    PARAMETER_VALUE="$(FILE_NAME=loadbalancing-collector-configuration.yaml ./scripts/convert_file_content_to_string.bash)" \
+    ./scripts/create_update_system_variable.bash
+
+PARAMETER_KEY_NAME=/otel/collector/configuration/tailaware-collector-conf-map-type \
+    PARAMETER_VALUE="env:COLLECTOR_CONFIGURATION" \
+    ./scripts/create_update_system_variable.bash
+
+PARAMETER_KEY_NAME=/otel/collector/configuration/tailaware-collector-configuration \
+    PARAMETER_VALUE="$(FILE_NAME=tailaware-collector-configuration.yaml ./scripts/convert_file_content_to_string.bash)" \
+    ./scripts/create_update_system_variable.bash
+
 # create a parameter-overrides string
 PARAMETER_OVERRIDES_STRING="$(STACK_BUCKET_NAME=stack-bucket \
     ./scripts/generate_parameter_overrides_string.bash \
