@@ -40,7 +40,7 @@ def get_interpreted_variable_value(value: str) -> str:
 
 
 def get_string_for_cf_parameter_overrides_option(parameters: dict) -> str:
-    return " ".join([f"{key}={value}" for key, value in parameters.items()])
+    return " ".join([f'{key}={value}' for key, value in parameters.items()])
 
 
 if __name__ == "__main__":

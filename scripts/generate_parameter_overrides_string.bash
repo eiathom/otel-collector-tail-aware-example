@@ -10,14 +10,12 @@ if [ -z "${file_name}" ]; then
   echo "ERROR: 'file_name' is unset, exiting"
   exit 1
 fi
-echo "INFO: file_name is '${file_name}'"
 
 # check vaiable is set
 if [ -z "${environment_name}" ]; then
   echo "ERROR: 'environment_name' is unset, exiting"
   exit 1
 fi
-echo "INFO: environment_name is '${environment_name}'"
 
 # check that GIT is installed
 git_command=$(which git)

@@ -66,14 +66,18 @@ STACK_NAME=StackBucket STACK_FILE_NAME=stackbucket.yaml ./scripts/create_stack.b
 
 # create a parameter-overrides string
 PARAMETER_OVERRIDES_STRING="$(STACK_BUCKET_NAME=stack-bucket \
-    TELEMETRY_BACKEND_API_KEY=some-key \
-    LOAD_BALANCING_COLLECTOR_CONFIGURATION="$(FILE_NAME=loadbalancing-collector-configuration.yaml ./scripts/convert_file_content_to_string.bash)" \
-    TAIL_AWARE_COLLECTOR_CONFIGURATION="$(FILE_NAME=tailaware-collector-configuration.yaml ./scripts/convert_file_content_to_string.bash)" \
     ./scripts/generate_parameter_overrides_string.bash \
         main_parameters.yaml \
         dev)"
 
-STACK_NAME=Main STACK_FILE_NAME=main.yaml PARAMETER_OVERRIDES_STRING=${PARAMETER_OVERRIDES_STRING} ./scripts/create_stack.bash
+STACK_NAME=Main STACK_FILE_NAME=main.yaml PARAMETER_OVERRIDES_STRING="${PARAMETER_OVERRIDES_STRING}" ./scripts/create_stack.bash
+
+# install cloudformation to terraform transformer
+# https://github.com/DontShaveTheYak/cf2tf
+python -m pip install cf2tf
+
+# convert cf to tf
+cf2tf ./stack/cloudformation/main.yaml -o ./stack/terraform/main
 
 # close the environment when done
 deactivate

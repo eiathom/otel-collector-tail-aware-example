@@ -5,7 +5,7 @@ Parameters:
   BucketName:
     Type: String
     Description: S3 bucket where stacks are stored
-    Default: 515383396577-stack-bucket
+    Default: stack-bucket
   HttpTrafficPort:
     Type: Number
     Description: The port for HTTP traffic
@@ -14,25 +14,25 @@ Parameters:
     Type: Number
     Description: The port for HTTP traffic to be forwarded to
     Default: 4318
-  TelemetryBackendApiKeySsmValue:
-    Type: String
-    Description: Value of the telemetry API key
-    Default: Default
-    NoEcho: true
-  LoadBalancingCollectorConfigurationSsmValue:
-    Type: String
-    Description: Value of the LoadBalancing Collector configuration
-    Default: Default
-    NoEcho: true
-  TailAwareCollectorConfigurationSsmValue:
-    Type: String
-    Description: Value of the TailAware Collector configuration
-    Default: Default
-    NoEcho: true
+  # TelemetryBackendApiKeySsmValue:
+  #   Type: String
+  #   Description: Value of the telemetry API key
+  #   Default: Default
+  #   NoEcho: true
+  # LoadBalancingCollectorConfigurationSsmValue:
+  #   Type: String
+  #   Description: Value of the LoadBalancing Collector configuration
+  #   Default: Default
+  #   NoEcho: true
+  # TailAwareCollectorConfigurationSsmValue:
+  #   Type: String
+  #   Description: Value of the TailAware Collector configuration
+  #   Default: Default
+  #   NoEcho: true
   LoadBalancingCollectorMaxCapacity:
     Type: Number
     Description: The maximum number of tasks the LoadBalancing Collector should scale out to
-    Default: 5
+    Default: 3
   LoadBalancingCollectorMinCapacity:
     Type: Number
     Description: The minimum number of tasks the LoadBalancing Collector should scale in to
@@ -78,14 +78,14 @@ Resources:
         HttpTrafficPort: !Ref HttpTrafficPort
         HttpTargetPort: !Ref HttpTargetPort
 
-  SecureSystemParameters:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/securesystemparameters.yaml"
-      Parameters:
-        TelemetryBackendApiKeySsmValue: !Ref TelemetryBackendApiKeySsmValue
-        LoadBalancingCollectorConfigurationSsmValue: !Ref LoadBalancingCollectorConfigurationSsmValue
-        TailAwareCollectorConfigurationSsmValue: !Ref TailAwareCollectorConfigurationSsmValue
+  # SecureSystemParameters:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/securesystemparameters.yaml"
+  #     Parameters:
+  #       TelemetryBackendApiKeySsmValue: !Ref TelemetryBackendApiKeySsmValue
+  #       LoadBalancingCollectorConfigurationSsmValue: !Ref LoadBalancingCollectorConfigurationSsmValue
+  #       TailAwareCollectorConfigurationSsmValue: !Ref TailAwareCollectorConfigurationSsmValue
 
   PrivateService:
     Type: AWS::CloudFormation::Stack
@@ -99,10 +99,10 @@ Resources:
         HttpTargetPort: !Ref HttpTargetPort
         HttpTargetGroupArn: !GetAtt PublicLoadBalancer.Outputs.HttpTargetGroupArn
         # TelemetryBackendApiKeySsmKeyName: !GetAtt SecureSystemParameters.Outputs.TelemetryBackendApiKeySsmResourceName
-        LoadBalancingCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfSsmResourceName
-        LoadBalancingCollectorConfigurationYaml: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfigurationSsmResourceName
-        TailAwareCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.TailAwareCollectorConfSsmResourceName
-        TailAwareCollectorConfigurationYaml: !GetAtt SecureSystemParameters.Outputs.TailAwareCollectorConfigurationSsmResourceName
+        # LoadBalancingCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfSsmResourceName
+        # LoadBalancingCollectorConfigurationYaml: !GetAtt SecureSystemParameters.Outputs.LoadBalancingCollectorConfigurationSsmResourceName
+        # TailAwareCollectorConfMap: !GetAtt SecureSystemParameters.Outputs.TailAwareCollectorConfSsmResourceName
+        # TailAwareCollectorConfigurationYaml: !GetAtt SecureSystemParameters.Outputs.TailAwareCollectorConfigurationSsmResourceName
         LoadBalancingCollectorMaxCapacity: !Ref LoadBalancingCollectorMaxCapacity
         LoadBalancingCollectorMinCapacity: !Ref LoadBalancingCollectorMinCapacity
         LoadBalancingCollectorScalingTargetPercentage: !Ref LoadBalancingCollectorScalingTargetPercentage
