@@ -99,6 +99,9 @@ STACK_FILE_NAME=main.yaml \
 PARAMETER_OVERRIDES_STRING="${PARAMETER_OVERRIDES_STRING}" \
 ./scripts/create_stack.bash
 
+# checking collector functionality
+curl -X POST -H "Content-Type: application/json" -d @collector/payload/traces.json -i ALB_ADDRESS/v1/traces
+
 # install cloudformation to terraform transformer
 # https://github.com/DontShaveTheYak/cf2tf
 python -m pip install cf2tf

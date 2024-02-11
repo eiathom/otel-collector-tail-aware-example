@@ -197,9 +197,19 @@ Resources:
           Cpu: !Ref LoadBalancingCollectorCpu
           Memory: !Ref LoadBalancingCollectorMemory
           PortMappings:
+            - ContainerPort: 13133
+              Protocol: tcp
+              AppProtocol: http
             - ContainerPort: !Ref HttpTargetPort
               Protocol: tcp
               AppProtocol: http
+          HealthCheck:
+            Command:
+              - /healthcheck
+            Interval: 5
+            Timeout: 6
+            Retries: 1
+            StartPeriod: 5
           Command:
             - "--config"
             - !Sub "${LoadBalancingCollectorConfMap}"
@@ -299,9 +309,19 @@ Resources:
           Cpu: !Ref TailAwareCollectorCpu
           Memory: !Ref TailAwareCollectorMemory
           PortMappings:
+            - ContainerPort: 13133
+              Protocol: tcp
+              AppProtocol: http
             - ContainerPort: !Ref HttpTargetPort
               Protocol: tcp
               AppProtocol: http
+          HealthCheck:
+            Command:
+              - /healthcheck
+            Interval: 5
+            Timeout: 6
+            Retries: 1
+            StartPeriod: 5
           Command:
             - "--config"
             - !Sub "${TailAwareCollectorConfMap}"

@@ -57,12 +57,9 @@ extensions:
   health_check:
 
 service:
+  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [tail_sampling, batch]
       exporters: [otlp/newrelic]
-    # logs:
-    #   receivers: [otlp]
-    #   processors: [tail_sampling, batch]
-    #   exporters: [otlp/newrelic]
