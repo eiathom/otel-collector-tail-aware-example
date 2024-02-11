@@ -21,7 +21,7 @@ Parameters:
   HttpTrafficPort:
     Type: Number
     Description: The port for HTTP traffic
-    Default: 80
+    Default: 4318
   HttpTargetPort:
     Type: Number
     Description: The port for HTTP traffic to be forwarded to
@@ -113,8 +113,40 @@ Resources:
         - IpProtocol: tcp
           Description: Allow traffic from public ALB to private ECS
           FromPort: !Ref HttpTrafficPort
-          ToPort: !Ref HttpTrafficPort
+          ToPort: !Ref HttpTargetPort
           SourceSecurityGroupId: !Ref PublicLoadBalancerSecurityGroupId
+
+  TailAwareCollectorSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for TailAwareCollector
+      VpcId: !Ref VpcId
+
+  LoadBalancingCollectorSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for LoadBalancingCollector
+      VpcId: !Ref VpcId
+
+  TailAwareCollectorEgressRule:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref LoadBalancingCollectorSecurityGroup
+      Description: Allow traffic from LoadBalancingCollector to TailAwareCollector
+      IpProtocol: tcp
+      FromPort: !Ref HttpTargetPort
+      ToPort: !Ref HttpTargetPort
+      DestinationSecurityGroupId: !Ref TailAwareCollectorSecurityGroup
+
+  TailAwareCollectorIngressRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref TailAwareCollectorSecurityGroup
+      Description: Allow traffic from LoadBalancingCollector to TailAwareCollector
+      IpProtocol: tcp
+      FromPort: !Ref HttpTargetPort
+      ToPort: !Ref HttpTargetPort
+      SourceSecurityGroupId: !Ref LoadBalancingCollectorSecurityGroup
 
   ECSTaskRole:
     Type: AWS::IAM::Role
@@ -248,6 +280,7 @@ Resources:
           Subnets: !Ref PrivateSubnetIds
           SecurityGroups:
             - !Ref PrivateServiceSecurityGroup
+            - !Ref LoadBalancingCollectorSecurityGroup
       LoadBalancers:
         - ContainerName: !Ref LoadBalancingCollectorServiceName
           ContainerPort: !Ref HttpTargetPort
@@ -353,7 +386,7 @@ Resources:
           AssignPublicIp: DISABLED
           Subnets: !Ref PrivateSubnetIds
           SecurityGroups:
-            - !Ref PrivateServiceSecurityGroup
+            - !Ref TailAwareCollectorSecurityGroup
       Tags:
         - Key: Name
           Value: !Join ["-", [!Ref TailAwareCollectorServiceName, "service"]]
