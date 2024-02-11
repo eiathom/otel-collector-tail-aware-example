@@ -9,7 +9,7 @@ Parameters:
   HttpTrafficPort:
     Type: Number
     Description: The port for HTTP traffic
-    Default: 80
+    Default: 4318
   HttpTargetPort:
     Type: Number
     Description: The port for HTTP traffic to be forwarded to

@@ -3,6 +3,7 @@ receivers:
     protocols:
       # just interested in HTTP JSON payload for now
       http:
+      grpc:
   # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
   hostmetrics:
     scrapers:
@@ -53,11 +54,7 @@ exporters:
     headers:
       api-key: ${TELEMETRY_BACKEND_API_KEY}
 
-extensions:
-  health_check:
-
 service:
-  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]

@@ -13,7 +13,7 @@ Parameters:
   HttpTrafficPort:
     Type: Number
     Description: The port for HTTP traffic
-    Default: 80
+    Default: 4318
   HttpTargetPort:
     Type: Number
     Description: The port for HTTP traffic to be forwarded to
@@ -81,7 +81,8 @@ Resources:
       ListenerArn: !Ref PublicLoadBalancerListener
       Conditions:
         - Field: path-pattern
-          Values: ["/v1/*"]
+          Values:
+            - "/v1/*"
       Actions:
         - Type: forward
           TargetGroupArn: !Ref HttpTargetGroup
@@ -97,11 +98,12 @@ Resources:
       ProtocolVersion: HTTP1
       TargetType: ip
       UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 10
       HealthyThresholdCount: 2
-      HealthCheckIntervalSeconds: 6
+      HealthCheckIntervalSeconds: 30
       # note that both of these (path, port) need to be exposed on the target Task
-      HealthCheckPath: /healthcheck
-      HealthCheckPort: 13133
+      HealthCheckPath: /v1/traces
+      HealthCheckPort: 4318
       HealthCheckProtocol: HTTP
       HealthCheckEnabled: true
       Matcher:

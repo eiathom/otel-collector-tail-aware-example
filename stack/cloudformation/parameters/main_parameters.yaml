@@ -2,7 +2,7 @@ environment:
   dev:
     parameters:
       BucketName: ${STACK_BUCKET_NAME}
-      HttpTrafficPort: 80
+      HttpTrafficPort: 4318
       HttpTargetPort: 4318
       LoadBalancingCollectorMaxCapacity: 3
       LoadBalancingCollectorMinCapacity: 1
@@ -10,6 +10,6 @@ environment:
       LoadBalancingCollectorDesiredCount: 1
       LoadBalancingCollectorCpu: 256
       LoadBalancingCollectorMemory: 512
-      TailAwareCollectorDesiredCount: 3
+      TailAwareCollectorDesiredCount: 1
       TailAwareCollectorCpu: 256
       TailAwareCollectorMemory: 512

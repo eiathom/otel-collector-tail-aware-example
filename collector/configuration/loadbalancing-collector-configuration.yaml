@@ -3,6 +3,7 @@ receivers:
     protocols:
       # just interested in HTTP JSON payload for now
       http:
+      grpc:
   # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
   hostmetrics:
     scrapers:
@@ -30,9 +31,14 @@ exporters:
     protocol:
       # takes all configuration of 'regular' exporter (just don't set the endpoint here)
       otlp:
-        timeout: 1s
+        timeout: 3s
         tls:
           insecure: true
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 5m
     resolver:
       # choosing to resolve hostnames by querying DNS
       dns:
