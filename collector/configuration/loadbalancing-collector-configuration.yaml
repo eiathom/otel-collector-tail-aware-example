@@ -24,13 +24,15 @@ exporters:
 
   # trace and log signals will be exported downstream to the tail-aware Collector (and then on to the telemetry back-end)
   # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
-  otlp/loadbalancing:
+  loadbalancing:
     # export spans based on their service name, all spans for each service are sent to consistent collector instances
     routing_key: "service"
     protocol:
       # takes all configuration of 'regular' exporter (just don't set the endpoint here)
       otlp:
         timeout: 1s
+        tls:
+          insecure: true
     resolver:
       # choosing to resolve hostnames by querying DNS
       dns:
@@ -48,7 +50,7 @@ service:
     traces:
       receivers: [otlp]
       processors: []
-      exporters: [otlp/loadbalancing]
+      exporters: [loadbalancing]
     metrics:
       receivers: [otlp, hostmetrics]
       processors: [batch]
@@ -56,4 +58,4 @@ service:
     logs:
       receivers: [otlp]
       processors: []
-      exporters: [otlp/loadbalancing]
+      exporters: [otlp/newrelic]
