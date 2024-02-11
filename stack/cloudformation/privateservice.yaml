@@ -26,6 +26,10 @@ Parameters:
     Type: Number
     Description: The port for HTTP traffic to be forwarded to
     Default: 4318
+  OtelCollectorClusterName:
+    Type: String
+    Description: Name of the Collector ECS cluster
+    Default: otelcollectorcluster
   OtelCollectorNamespaceName:
     Type: String
     Description: The name of the namespace for service discovery (discovery of Collectors hostnames)
@@ -107,7 +111,7 @@ Resources:
       VpcId: !Ref VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
-          Description: Allow traffic from public ALB to private ECS 
+          Description: Allow traffic from public ALB to private ECS
           FromPort: !Ref HttpTrafficPort
           ToPort: !Ref HttpTrafficPort
           SourceSecurityGroupId: !Ref PublicLoadBalancerSecurityGroupId
@@ -162,6 +166,8 @@ Resources:
 
   OtelCollectorCluster:
     Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref OtelCollectorClusterName
 
   OtelCollectorCloudMapNamespace:
     Type: AWS::ServiceDiscovery::PrivateDnsNamespace
@@ -197,19 +203,12 @@ Resources:
           Cpu: !Ref LoadBalancingCollectorCpu
           Memory: !Ref LoadBalancingCollectorMemory
           PortMappings:
-            - ContainerPort: 13133
+            - ContainerPort: 4317
               Protocol: tcp
-              AppProtocol: http
+              AppProtocol: grpc
             - ContainerPort: !Ref HttpTargetPort
               Protocol: tcp
               AppProtocol: http
-          HealthCheck:
-            Command:
-              - /healthcheck
-            Interval: 5
-            Timeout: 6
-            Retries: 1
-            StartPeriod: 5
           Command:
             - "--config"
             - !Sub "${LoadBalancingCollectorConfMap}"
@@ -229,6 +228,7 @@ Resources:
 
   LoadBalancingCollector:
     Type: AWS::ECS::Service
+    DependsOn: TailAwareCollector
     Properties:
       ServiceName: !Ref LoadBalancingCollectorServiceName
       Cluster: !Ref OtelCollectorCluster
@@ -257,24 +257,25 @@ Resources:
           Value: !Join ["-", [!Ref LoadBalancingCollectorServiceName, "service"]]
 
   LoadBalancingCollectorScalingTarget:
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: LoadBalancingCollector
     Properties:
       MaxCapacity: !Ref LoadBalancingCollectorMaxCapacity
       MinCapacity: !Ref LoadBalancingCollectorMinCapacity
-      ResourceId: !Sub "service/${OtelCollectorCluster}/${LoadBalancingCollector}"
+      ResourceId: !Sub "service/${OtelCollectorClusterName}/${LoadBalancingCollectorServiceName}"
       ScalableDimension: "ecs:service:DesiredCount"
       ServiceNamespace: ecs
 
   # scaling the load balancing collector service task based on average memory utilisation
   LoadBalancingCollectorScalingPolicy:
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
       PolicyName: LoadBalancingCollectorAutoScalingPolicy
       PolicyType: TargetTrackingScaling
       ScalingTargetId: !Ref LoadBalancingCollectorScalingTarget
       TargetTrackingScalingPolicyConfiguration:
         PredefinedMetricSpecification:
-          PredefinedMetricType: "ECSServiceAverageMemoryUtilization"
+          PredefinedMetricType: ECSServiceAverageMemoryUtilization
         TargetValue: !Ref LoadBalancingCollectorScalingTargetPercentage
         # see: https://docs.aws.amazon.com/autoscaling/application/userguide/target-tracking-scaling-policy-overview.html#target-tracking-cooldown
         # in seconds, defaulting to both being 5 minutes of cooldown (this should be tuned after many load generation verification runs)
@@ -309,19 +310,12 @@ Resources:
           Cpu: !Ref TailAwareCollectorCpu
           Memory: !Ref TailAwareCollectorMemory
           PortMappings:
-            - ContainerPort: 13133
+            - ContainerPort: 4317
               Protocol: tcp
-              AppProtocol: http
+              AppProtocol: grpc
             - ContainerPort: !Ref HttpTargetPort
               Protocol: tcp
               AppProtocol: http
-          HealthCheck:
-            Command:
-              - /healthcheck
-            Interval: 5
-            Timeout: 6
-            Retries: 1
-            StartPeriod: 5
           Command:
             - "--config"
             - !Sub "${TailAwareCollectorConfMap}"
@@ -360,10 +354,6 @@ Resources:
           Subnets: !Ref PrivateSubnetIds
           SecurityGroups:
             - !Ref PrivateServiceSecurityGroup
-      LoadBalancers:
-        - ContainerName: !Ref TailAwareCollectorServiceName
-          ContainerPort: !Ref HttpTargetPort
-          TargetGroupArn: !Ref HttpTargetGroupArn
       Tags:
         - Key: Name
           Value: !Join ["-", [!Ref TailAwareCollectorServiceName, "service"]]
