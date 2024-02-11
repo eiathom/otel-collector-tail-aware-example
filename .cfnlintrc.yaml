@@ -1,0 +1,10 @@
+regions:
+  - eu-west-1
+# ignore_checks:
+#   # - E3001
+#   # - W2001
+include_checks:
+  # - I001
+  - I
+  - W
+  - E

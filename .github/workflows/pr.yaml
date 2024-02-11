@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  cloudformation_checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+          cache-dependency-path: "./requirements/development.txt"
+      - run: pip install -r ./requirements/development.txt
+
+      - name: Install cfn-lint
+        run: pip install cfn-lint
+
+      - name: Run cfn-lint
+        run: cfn-lint -c .cfnlintrc.yaml -t "./stack/cloudformation/*.yaml"
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov
+        run: checkov --config-file .checkov.yaml -d ./stack/cloudformation
