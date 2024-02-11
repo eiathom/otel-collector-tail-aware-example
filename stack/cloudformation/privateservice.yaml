@@ -33,7 +33,7 @@ Parameters:
   ImageName:
     Type: String
     Description: The image to leverage for the task
-    Default: "otel/opentelemetry-collector:0.89.0"
+    Default: "otel/opentelemetry-collector-contrib:0.94.0"
   TelemetryBackendApiKeySsmKeyName:
     Type: AWS::SSM::Parameter::Name
     Description: Name of the SSM secret parameter key whose value is a telemetry backend API key
@@ -107,6 +107,7 @@ Resources:
       VpcId: !Ref VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
+          Description: Allow traffic from public ALB to private ECS 
           FromPort: !Ref HttpTrafficPort
           ToPort: !Ref HttpTrafficPort
           SourceSecurityGroupId: !Ref PublicLoadBalancerSecurityGroupId

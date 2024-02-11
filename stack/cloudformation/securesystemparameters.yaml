@@ -6,14 +6,14 @@ Parameters:
     Type: String
     Description: Name of the path to Collector parameters
     Default: "/otel/collector/configuration/"
-  TelemetryBackendApiKeySsmKeyName:
-    Type: String
-    Description: Name of the variable to hold telemetry API key value
-    Default: telemetry-backend-api-key
-  TelemetryBackendApiKeySsmValue:
-    Type: String
-    Description: Value of the telemetry API key
-    NoEcho: true
+  # TelemetryBackendApiKeySsmKeyName:
+  #   Type: String
+  #   Description: Name of the variable to hold telemetry API key value
+  #   Default: telemetry-backend-api-key
+  # TelemetryBackendApiKeySsmValue:
+  #   Type: String
+  #   Description: Value of the telemetry API key
+  #   NoEcho: true
   # LoadBalancing
   LoadBalancingCollectorConfSsmKeyName:
     Type: String

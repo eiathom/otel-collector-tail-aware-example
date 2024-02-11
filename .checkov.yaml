@@ -1,0 +1,14 @@
+skip-check:
+  - CKV_AWS_65 # want to disable ECS container insights for now
+  - CKV_AWS_111 # want to allow the ECS Task Role to be able to write, will narrow the service scope
+  - CKV_AWS_108 # want to allow the ECS Task Role to be able to write, will narrow the service scope
+  - CKV_AWS_260 # for now we want to allow HTTP traffic from the internet on port 80 (at the load-balancer)
+  - CKV_AWS_91 # for now we don't want to have logging enabled at the load-balancer
+  - CKV_AWS_2 # for now we don't want to enforce HTTPS traffic over the load-balancer
+  - CKV_AWS_103 # for now we won't enable TLS v1.2 util we enable allow only HTTPS
+  - CKV_AWS_131 # we want to make sure on what header formats we need before enabling dropping 'invalid' headers
+  - CKV_AWS_18 # for now we don't want access logging enabled on the bucket
+  - CKV_AWS_21 # we don't want to enable automatic versioning of bucket items; we'll manage this ourselves
+# check:
+#   # - CKV_AWS_52
+
