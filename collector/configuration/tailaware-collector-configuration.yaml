@@ -62,7 +62,7 @@ service:
       receivers: [otlp]
       processors: [tail_sampling, batch]
       exporters: [otlp/newrelic]
-    logs:
-      receivers: [otlp]
-      processors: [tail_sampling, batch]
-      exporters: [otlp/newrelic]
+    # logs:
+    #   receivers: [otlp]
+    #   processors: [tail_sampling, batch]
+    #   exporters: [otlp/newrelic]
