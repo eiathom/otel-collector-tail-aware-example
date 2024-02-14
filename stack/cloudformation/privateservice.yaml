@@ -42,6 +42,18 @@ Parameters:
     Type: AWS::SSM::Parameter::Name
     Description: Name of the SSM secret parameter key whose value is a telemetry backend API key
     Default: "/otel/collector/configuration/telemetry-backend-api-key"
+  TelemetryBackendTokenSsmKeyName:
+    Type: AWS::SSM::Parameter::Name
+    Description: Name of the SSM secret parameter key whose value is a telemetry backend token
+    Default: "/otel/collector/configuration/telemetry-backend-token"
+  TelemetryBackendUserSsmKeyName:
+    Type: AWS::SSM::Parameter::Name
+    Description: Name of the SSM secret parameter key whose value is a telemetry backend user
+    Default: "/otel/collector/configuration/telemetry-backend-user"
+  TelemetryBackendEndpointSsmKeyName:
+    Type: AWS::SSM::Parameter::Name
+    Description: Name of the SSM secret parameter key whose value is a telemetry backend endpoint
+    Default: "/otel/collector/configuration/telemetry-backend-endpoint"
   LoadBalancingCollectorMaxCapacity:
     Type: Number
     Description: The maximum number of tasks the LoadBalancing Collector should scale out to
@@ -222,6 +234,12 @@ Resources:
           Secrets:
             - Name: TELEMETRY_BACKEND_API_KEY
               ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendApiKeySsmKeyName}"
+            - Name: TELEMETRY_BACKEND_ENDPOINT
+              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendEndpointSsmKeyName}"
+            - Name: TELEMETRY_BACKEND_USER
+              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendUserSsmKeyName}"
+            - Name: TELEMETRY_BACKEND_TOKEN
+              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendTokenSsmKeyName}"
           Environment:
             - Name: COLLECTOR_CONFIGURATION
               Value: !Ref LoadBalancingCollectorConfigurationYaml

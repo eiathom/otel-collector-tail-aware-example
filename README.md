@@ -46,6 +46,9 @@ python -m pip install awscli
 # (aws account access id and secret access id required)
 aws configure
 
+# ensure that when URL are in command that they are not treated as URL to target
+aws configure set cli_follow_urlparam false
+
 # user aws permission polices required
 * EC2
 * ECS
@@ -67,6 +70,21 @@ STACK_NAME=StackBucket STACK_FILE_NAME=stackbucket.yaml ./scripts/create_stack.b
 # publish telemetry backend API key as secure parameter
 PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-api-key \
     PARAMETER_VALUE="${TELEMETRY_API_KEY}" \
+    SECURE_STRING=1 \
+    ./scripts/create_update_system_variable.bash
+
+PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-endpoint \
+    PARAMETER_VALUE="${TELEMETRY_BACKEND_ENDPOINT}" \
+    SECURE_STRING=1 \
+    ./scripts/create_update_system_variable.bash
+
+PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-user \
+    PARAMETER_VALUE="${TELEMETRY_BACKEND_USER}" \
+    SECURE_STRING=1 \
+    ./scripts/create_update_system_variable.bash
+
+PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-token \
+    PARAMETER_VALUE="${TELEMETRY_BACKEND_TOKEN}" \
     SECURE_STRING=1 \
     ./scripts/create_update_system_variable.bash
 

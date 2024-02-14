@@ -6,9 +6,19 @@ receivers:
       grpc:
   # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
   hostmetrics:
+    collection_interval: 60s
     scrapers:
-      load:
       memory:
+      cpu:
+      network:
+      load:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "loadbalancing-collector"
+          scrape_interval: 30s
+          static_configs:
+            - targets: ["0.0.0.0:8888"]
 
 processors:
   # see: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
@@ -26,6 +36,12 @@ exporters:
     endpoint: otlp.eu01.nr-data.net:443
     headers:
       api-key: ${TELEMETRY_BACKEND_API_KEY}
+  otlphttp:
+    auth:
+      authenticator: basicauth/otlp
+    endpoint: ${TELEMETRY_BACKEND_ENDPOINT}
+    tls:
+      insecure: true
 
   # trace and log signals will be exported downstream to the tail-aware Collector (and then on to the telemetry back-end)
   # see: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
@@ -50,12 +66,16 @@ exporters:
 
 extensions:
   health_check:
+  basicauth/otlp:
+    client_auth:
+      username: ${TELEMETRY_BACKEND_USER}
+      password: ${TELEMETRY_BACKEND_TOKEN}
 
 service:
   telemetry:
     logs:
       level: debug
-  extensions: [health_check]
+  extensions: [health_check, basicauth/otlp]
   pipelines:
     traces:
       receivers: [otlp]
@@ -64,10 +84,10 @@ service:
       receivers: [otlp]
       exporters: [loadbalancing, debug]
     metrics/otlp:
-      receivers: [hostmetrics]
+      receivers: [hostmetrics, prometheus]
       processors: [batch]
-      exporters: [otlp/newrelic, debug]
+      exporters: [otlp/newrelic, otlphttp, debug]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/newrelic, debug]
+      exporters: [otlp/newrelic, otlphttp, debug]
