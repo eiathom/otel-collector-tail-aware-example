@@ -355,6 +355,12 @@ Resources:
           Secrets:
             - Name: TELEMETRY_BACKEND_API_KEY
               ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendApiKeySsmKeyName}"
+            - Name: TELEMETRY_BACKEND_ENDPOINT
+              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendEndpointSsmKeyName}"
+            - Name: TELEMETRY_BACKEND_USER
+              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendUserSsmKeyName}"
+            - Name: TELEMETRY_BACKEND_TOKEN
+              ValueFrom: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelemetryBackendTokenSsmKeyName}"
           Environment:
             - Name: COLLECTOR_CONFIGURATION
               Value: !Ref TailAwareCollectorConfigurationYaml
