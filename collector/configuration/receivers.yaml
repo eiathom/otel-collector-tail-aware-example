@@ -1,0 +1,24 @@
+receivers:
+  # s3://123456789012-dev-collector-configuration.s3.eu-west-1.amazonaws.com/otlp.yaml
+  otlp: ${s3://${env:COLLECTOR_CONFIGURATION_BUCKET_NAME}.s3.${env:COLLECTOR_CONFIGURATION_BUCKET_REGION}.amazonaws.com/${env:RECEIVER_OTLP_FILE_PATH}}
+  # s3://123456789012-dev-collector-configuration.s3.eu-west-1.amazonaws.com/hostmetrics.yaml
+  hostmetrics: ${s3://${env:COLLECTOR_CONFIGURATION_BUCKET_NAME}.s3.${env:COLLECTOR_CONFIGURATION_BUCKET_REGION}.amazonaws.com/${env:RECEIVER_HOSTMETRICS_FILE_PATH}}
+  # s3://123456789012-dev-collector-configuration.s3.eu-west-1.amazonaws.com/prometheus.yaml
+  prometheus: ${s3://${env:COLLECTOR_CONFIGURATION_BUCKET_NAME}.s3.${env:COLLECTOR_CONFIGURATION_BUCKET_REGION}.amazonaws.com/${env:RECEIVER_PROMETHEUS_FILE_PATH}}
+service:
+  pipelines:
+    traces:
+      receivers:
+        - otlp
+        - hostmetrics
+        - prometheus
+    metrics:
+      receivers:
+        - otlp
+        - hostmetrics
+        - prometheus
+    logs:
+      receivers:
+        - otlp
+        - hostmetrics
+        - prometheus

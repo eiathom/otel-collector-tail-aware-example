@@ -25,7 +25,7 @@ pyenv local $(head -1 .python-version)
 python -m venv venv
 
 # activate the environment
-source venv/bin/activate
+source venv/bin/activate 
 
 # upgrade pip
 python -m pip install --upgrade pip
@@ -65,48 +65,53 @@ cfn-lint --template ./stack/cloudformation/main.yaml --region eu-west-1
 checkov --config-file .checkov.yaml -d ./stack/cloudformation
 
 # create the bucket for the stacks
-STACK_NAME=StackBucket STACK_FILE_NAME=stackbucket.yaml ./scripts/create_stack.bash
+STACK_NAME=StackBucket \
+STACK_FILE_NAME=stackbucket.yaml \
+./scripts/create_stack.bash
 
 # publish telemetry backend API key as secure parameter
 PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-api-key \
-    PARAMETER_VALUE="${TELEMETRY_API_KEY}" \
-    SECURE_STRING=1 \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="${TELEMETRY_API_KEY}" \
+SECURE_STRING=1 \
+./scripts/create_update_system_variable.bash
 
 PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-endpoint \
-    PARAMETER_VALUE="${TELEMETRY_BACKEND_ENDPOINT}" \
-    SECURE_STRING=1 \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="${TELEMETRY_BACKEND_ENDPOINT}" \
+SECURE_STRING=1 \
+./scripts/create_update_system_variable.bash
 
 PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-user \
-    PARAMETER_VALUE="${TELEMETRY_BACKEND_USER}" \
-    SECURE_STRING=1 \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="${TELEMETRY_BACKEND_USER}" \
+SECURE_STRING=1 \
+./scripts/create_update_system_variable.bash
 
 PARAMETER_KEY_NAME=/otel/collector/configuration/telemetry-backend-token \
-    PARAMETER_VALUE="${TELEMETRY_BACKEND_TOKEN}" \
-    SECURE_STRING=1 \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="${TELEMETRY_BACKEND_TOKEN}" \
+SECURE_STRING=1 \
+./scripts/create_update_system_variable.bash
 
 # publish Collector configuration as parameters
 PARAMETER_KEY_NAME=/otel/collector/configuration/loadbalancing-collector-conf-map-type \
-    PARAMETER_VALUE="env:COLLECTOR_CONFIGURATION" \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="env:COLLECTOR_CONFIGURATION" \
+./scripts/create_update_system_variable.bash
 
 PARAMETER_KEY_NAME=/otel/collector/configuration/loadbalancing-collector-configuration \
-    PARAMETER_VALUE="$(FILE_NAME=loadbalancing-collector-configuration.yaml ./scripts/convert_file_content_to_string.bash)" \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="$(FILE_NAME=loadbalancing-collector-configuration.yaml \
+    ./scripts/convert_file_content_to_string.bash)" \
+./scripts/create_update_system_variable.bash
 
 PARAMETER_KEY_NAME=/otel/collector/configuration/tailaware-collector-conf-map-type \
-    PARAMETER_VALUE="env:COLLECTOR_CONFIGURATION" \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="env:COLLECTOR_CONFIGURATION" \
+./scripts/create_update_system_variable.bash
 
 PARAMETER_KEY_NAME=/otel/collector/configuration/tailaware-collector-configuration \
-    PARAMETER_VALUE="$(FILE_NAME=tailaware-collector-configuration.yaml ./scripts/convert_file_content_to_string.bash)" \
-    ./scripts/create_update_system_variable.bash
+PARAMETER_VALUE="$(FILE_NAME=tailaware-collector-configuration.yaml \
+    ./scripts/convert_file_content_to_string.bash)" \
+./scripts/create_update_system_variable.bash
 
 # create a parameter-overrides string
-PARAMETER_OVERRIDES_STRING="$(STACK_BUCKET_NAME=stack-bucket \
+STACK_BUCKET_NAME=stack-bucket \
+PARAMETER_OVERRIDES_STRING="$(STACK_BUCKET_NAME=${STACK_BUCKET_NAME} \
     ./scripts/generate_parameter_overrides_string.bash \
         main_parameters.yaml \
         dev)"
@@ -131,3 +136,36 @@ cf2tf ./stack/cloudformation/main.yaml -o ./stack/terraform/main
 deactivate
 
 ```
+
+## Querying / visualising stored telemetry data
+
+OpenTelemetry (OTEL) is the complete solution for describing systems via data.
+It is modular, extensible, adheres to industry standards, and powerful. The tooling
+provided by OpenTelemetry - as well as the specification - help systems designers
+deliver on the ideal of a system to be termed as 'observable'.
+
+The choice of telemetry back-end is totally up to user preference. There are a
+number of systems which store, provide a query engine, and visualise telemetry
+data as an all-in-one - **managed** - solution (at various levels of user
+maturity):
+
+* [Grafana Cloud](https://grafana.com/) is the most complete telemetry
+solution on the market totally geared towards OTEL, focused mature users
+* [NewRelic](https://newrelic.com/) is a huge product, for novice users, which
+is not geared towards OTEL
+* [DataDog](https://www.datadoghq.com/) is a huge product, for novice users,
+which is not geared towards OTEL
+
+A fully **self-managed** solution can be obtained by leveraging:
+
+* [Jaeger](https://www.jaegertracing.io/docs/1.54/deployment/#query-service--ui)
+: span and metric storage query engine and telemetry visualisation
+    * **NOTE:** [Grafana](https://grafana.com/grafana/) is also - in it's
+    basic form - a visualisation tool
+* [Cassandra](https://cassandra.apache.org/_/index.html): span storage
+* [Prometheus](https://prometheus.io/docs/introduction/overview/): metric storage
+
+Getting a Grafana Cloud account, creating an access policy (to ingest OTLP
+spans, metrics and logs) to 'it', which can then be used as
+an authentication mechanism to export OTLP from a deployed Collector
+solution (like this one), is a fantastic decision anyone can make going forward.
