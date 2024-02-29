@@ -1,0 +1,34 @@
+extensions:
+  basicauth/grafana:
+    client_auth:
+      username: ${env:GRAFANA_TELEMETRY_BACKEND_USER}
+      password: ${env:GRAFANA_TELEMETRY_BACKEND_TOKEN}
+exporters:
+  otlphttp/grafana:
+    auth:
+      authenticator: basicauth/grafana
+    endpoint: ${env:GRAFANA_TELEMETRY_BACKEND_ENDPOINT}
+    tls:
+      insecure: true
+  otlp/newrelic:
+    endpoint: ${env:NEWRELIC_TELEMETRY_BACKEND_ENDPOINT}
+    headers:
+      api-key: ${env:NEWRELIC_TELEMETRY_BACKEND_API_KEY}
+    tls:
+      insecure: true
+service:
+  extensions:
+    - basicauth/grafana
+  pipelines:
+    traces:
+      exporters:
+        - otlphttp/grafana
+        - otlp/newrelic
+    metrics:
+      exporters:
+        - otlphttp/grafana
+        - otlp/newrelic
+    logs:
+      exporters:
+        - otlphttp/grafana
+        - otlp/newrelic

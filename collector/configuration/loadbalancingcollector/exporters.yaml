@@ -1,0 +1,24 @@
+exporters:
+  loadbalancing:
+    routing_key: service
+    protocol:
+      otlp:
+        compression: gzip
+        tls:
+          insecure: true
+    resolver:
+      dns:
+        hostname: ${env:LOADBALANCING_RESOLVER_DNS_HOSTNAME}
+        port: ${env:LOADBALANCING_RESOLVER_DNS_PORT}
+        interval: ${env:LOADBALANCING_RESOLVER_DNS_INTERVAL}
+service:
+  pipelines:
+    traces:
+      exporters:
+        - loadbalancing
+    metrics:
+      exporters:
+        - loadbalancing
+    logs:
+      exporters:
+        - loadbalancing

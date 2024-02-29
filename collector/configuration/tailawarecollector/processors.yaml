@@ -1,0 +1,19 @@
+processors:
+  # s3://123456789012-dev-collector-configuration.s3.eu-west-1.amazonaws.com/batch.yaml
+  batch: ${s3://${env:COLLECTOR_CONFIGURATION_BUCKET_NAME}.s3.${env:COLLECTOR_CONFIGURATION_BUCKET_REGION}.amazonaws.com/batch.yaml}
+  # s3://123456789012-dev-collector-configuration.s3.eu-west-1.amazonaws.com/tailsampling.yaml
+  tailsampling: ${s3://${env:COLLECTOR_CONFIGURATION_BUCKET_NAME}.s3.${env:COLLECTOR_CONFIGURATION_BUCKET_REGION}.amazonaws.com/tailsampling.yaml}
+service:
+  pipelines:
+    traces:
+      processors:
+        - tailsampling
+        - batch
+    metrics:
+      processors:
+        - tailsampling
+        - batch
+    logs:
+      processors:
+        - tailsampling
+        - batch

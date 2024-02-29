@@ -1,0 +1,8 @@
+extensions:
+  health_check:
+service:
+  telemetry:
+    logs:
+      level: ${env:SERVICE_TELEMETRY_LOGS_LEVEL}
+  extensions:
+    - health_check
